@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Record System — Tech Academy</title>
+  <meta name="description" content="A modern student record system to manage, track, and analyze student performance at Tech Academy." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-dark:       #0a0e1a;
+      --bg-card:       rgba(255,255,255,0.04);
+      --bg-card-hover: rgba(255,255,255,0.08);
+      --border:        rgba(255,255,255,0.09);
+      --border-bright: rgba(255,255,255,0.18);
+      --accent-1:      #7c3aed;   /* violet */
+      --accent-2:      #2563eb;   /* blue */
+      --accent-3:      #0ea5e9;   /* sky */
+      --accent-green:  #10b981;
+      --accent-amber:  #f59e0b;
+      --accent-red:    #ef4444;
+      --text-primary:  #f1f5f9;
+      --text-muted:    #94a3b8;
+      --text-dim:      #64748b;
+      --glow-violet:   0 0 40px rgba(124,58,237,0.25);
+      --glow-blue:     0 0 40px rgba(37,99,235,0.25);
+      --radius-md:     12px;
+      --radius-lg:     20px;
+      --radius-xl:     28px;
+      --transition:    all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* --- Background Orbs --- */
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      z-index: 0;
+      animation: orbFloat 8s ease-in-out infinite;
+    }
+    .bg-orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%);
+      top: -150px; left: -150px;
+      animation-delay: 0s;
+    }
+    .bg-orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(37,99,235,0.25) 0%, transparent 70%);
+      bottom: -100px; right: -100px;
+      animation-delay: 4s;
+    }
+    .bg-orb-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      animation-delay: 2s;
+    }
+    @keyframes orbFloat {
+      0%,100% { transform: translate(0,0); }
+      50%      { transform: translate(20px,30px); }
+    }
+
+    /* --- Layout --- */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* --- Header --- */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 32px 0 48px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-brand { display: flex; align-items: center; gap: 16px; }
+    .header-logo {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: var(--glow-violet);
+    }
+    .header-text h1 {
+      font-size: 22px; font-weight: 700; letter-spacing: -0.3px;
+    }
+    .header-text p {
+      font-size: 13px; color: var(--text-muted); margin-top: 2px;
+    }
+    .badge {
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      color: white;
+      font-size: 11px; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    /* --- Tabs --- */
+    .tabs {
+      display: flex; gap: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 5px;
+      overflow-x: auto;
+      margin-bottom: 40px;
+    }
+    .tab-btn {
+      flex: 1; min-width: 100px;
+      padding: 10px 16px;
+      background: none; border: none;
+      border-radius: 12px;
+      color: var(--text-muted);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .tab-btn:hover { color: var(--text-primary); background: var(--bg-card-hover); }
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      color: white;
+      box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+    }
+
+    /* --- Section --- */
+    .section { display: none; animation: fadeIn 0.3s ease; }
+    .section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- Stats Grid --- */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px 20px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      border-radius: 2px;
+    }
+    .stat-card.violet::before { background: linear-gradient(90deg, var(--accent-1), var(--accent-2)); }
+    .stat-card.sky::before    { background: linear-gradient(90deg, var(--accent-2), var(--accent-3)); }
+    .stat-card.green::before  { background: linear-gradient(90deg, var(--accent-green), var(--accent-3)); }
+    .stat-card.amber::before  { background: linear-gradient(90deg, var(--accent-amber), var(--accent-red)); }
+    .stat-card:hover { border-color: var(--border-bright); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+    .stat-icon { font-size: 28px; margin-bottom: 12px; }
+    .stat-value { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* --- Grade Distribution Bar --- */
+    .grade-bar-wrap { margin-bottom: 40px; }
+    .grade-bar-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .grade-bars { display: flex; gap: 8px; align-items: flex-end; height: 80px; }
+    .grade-bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .grade-bar-fill {
+      width: 100%; border-radius: 6px 6px 0 0;
+      min-height: 4px;
+      transition: height 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+    .grade-bar-fill.A { background: linear-gradient(180deg, #10b981, #059669); }
+    .grade-bar-fill.B { background: linear-gradient(180deg, #2563eb, #1d4ed8); }
+    .grade-bar-fill.C { background: linear-gradient(180deg, #7c3aed, #5b21b6); }
+    .grade-bar-fill.D { background: linear-gradient(180deg, #f59e0b, #d97706); }
+    .grade-bar-fill.F { background: linear-gradient(180deg, #ef4444, #b91c1c); }
+    .grade-bar-label { font-size: 11px; font-weight: 700; margin-top: 6px; color: var(--text-muted); }
+    .grade-bar-count { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-top: 2px; }
+
+    /* --- Search Bar --- */
+    .search-row {
+      display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .search-wrap {
+      position: relative; flex: 1; min-width: 240px;
+    }
+    .search-icon {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      color: var(--text-dim); font-size: 16px; pointer-events: none;
+    }
+    input[type="text"], input[type="number"], select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      padding: 12px 16px;
+      outline: none;
+      transition: var(--transition);
+      width: 100%;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, select:focus {
+      border-color: var(--accent-1);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
+    }
+    .search-wrap input { padding-left: 44px; }
+    select option { background: #1e2035; }
+
+    /* --- Buttons --- */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 20px;
+      border: none; border-radius: var(--radius-md);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      color: white;
+      box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(124,58,237,0.5); }
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+    .btn-secondary:hover { border-color: var(--border-bright); background: var(--bg-card-hover); }
+    .btn-danger {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #f87171;
+    }
+    .btn-danger:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.6); }
+    .btn-green {
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: #34d399;
+    }
+    .btn-green:hover { background: rgba(16,185,129,0.25); }
+    .btn-sm { padding: 7px 12px; font-size: 12px; }
+
+    /* --- Student Table --- */
+    .table-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid var(--border); }
+    thead th {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 11px; font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.7px;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: var(--transition);
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-card-hover); }
+    td { padding: 14px 16px; font-size: 14px; }
+
+    /* --- Grade Pill --- */
+    .grade-pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      font-size: 12px; font-weight: 700;
+    }
+    .grade-A { background: rgba(16,185,129,0.2); color: #34d399; }
+    .grade-B { background: rgba(37,99,235,0.2); color: #60a5fa; }
+    .grade-C { background: rgba(124,58,237,0.2); color: #a78bfa; }
+    .grade-D { background: rgba(245,158,11,0.2); color: #fbbf24; }
+    .grade-F { background: rgba(239,68,68,0.2); color: #f87171; }
+
+    .status-pill {
+      display: inline-block;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+    }
+    .status-Pass { background: rgba(16,185,129,0.15); color: #34d399; }
+    .status-Fail { background: rgba(239,68,68,0.15); color: #f87171; }
+
+    .section-tag {
+      display: inline-block;
+      background: rgba(124,58,237,0.15);
+      color: #a78bfa;
+      border: 1px solid rgba(124,58,237,0.3);
+      padding: 2px 8px; border-radius: 6px;
+      font-size: 11px; font-weight: 600;
+    }
+
+    .avg-bar-wrap { display: flex; align-items: center; gap: 8px; min-width: 140px; }
+    .avg-bar-bg {
+      flex: 1; height: 6px; background: rgba(255,255,255,0.05);
+      border-radius: 3px; overflow: hidden;
+    }
+    .avg-bar-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, var(--accent-1), var(--accent-3));
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+    .avg-text { font-size: 13px; font-weight: 600; min-width: 36px; }
+
+    /* --- Add Student Form --- */
+    .form-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 36px;
+      max-width: 560px;
+    }
+    .form-title {
+      font-size: 20px; font-weight: 700; margin-bottom: 8px;
+    }
+    .form-subtitle {
+      font-size: 13px; color: var(--text-muted); margin-bottom: 32px;
+    }
+    .form-grid { display: grid; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .marks-hint { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+    .success-toast, .error-toast {
+      position: fixed; bottom: 32px; right: 32px;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      font-size: 14px; font-weight: 500;
+      z-index: 1000;
+      animation: slideInToast 0.3s ease;
+      max-width: 360px;
+    }
+    .success-toast {
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.4);
+      color: #34d399;
+    }
+    .error-toast {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.4);
+      color: #f87171;
+    }
+    @keyframes slideInToast {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- Compare Section --- */
+    .compare-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 36px;
+    }
+    .compare-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; margin-top: 24px; }
+    .vs-badge {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800;
+      box-shadow: var(--glow-violet);
+    }
+    .compare-result {
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(124,58,237,0.1);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: var(--radius-md);
+      font-size: 16px; font-weight: 600;
+      text-align: center;
+      color: #a78bfa;
+      display: none;
+    }
+
+    /* --- Report Tab --- */
+    .report-controls { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+
+    /* --- Rank Medal --- */
+    .rank-medal { font-size: 16px; }
+
+    /* --- Empty State --- */
+    .empty-state {
+      text-align: center; padding: 80px 20px;
+      color: var(--text-dim);
+    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state p { font-size: 15px; }
+
+    /* --- Loading --- */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* --- Topper Highlight --- */
+    .topper-card {
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(37,99,235,0.2));
+      border: 1px solid rgba(124,58,237,0.4);
+      border-radius: var(--radius-xl);
+      padding: 28px 32px;
+      margin-bottom: 32px;
+      display: flex; align-items: center; gap: 24px;
+      flex-wrap: wrap;
+    }
+    .topper-avatar {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      box-shadow: var(--glow-violet);
+      flex-shrink: 0;
+    }
+    .topper-info { flex: 1; }
+    .topper-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .topper-name { font-size: 24px; font-weight: 800; }
+    .topper-avg { font-size: 14px; color: #a78bfa; margin-top: 4px; }
+    .topper-crown { font-size: 40px; }
+
+    /* --- Responsive --- */
+    @media (max-width: 640px) {
+      .compare-grid { grid-template-columns: 1fr; }
+      .vs-badge { margin: 0 auto; }
+      .form-card { padding: 24px; }
+      .topper-card { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background orbs -->
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="bg-orb bg-orb-3"></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="header-brand">
+      <div class="header-logo">??</div>
+      <div class="header-text">
+        <h1>Student Record System</h1>
+        <p>Tech Academy · Project 1 of 300-Day AI/ML Journey</p>
+      </div>
+    </div>
+    <span class="badge">Phase 1 · Days 1–4</span>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn active" id="tab-dashboard" onclick="switchTab('dashboard')" role="tab">?? Dashboard</button>
+    <button class="tab-btn" id="tab-students" onclick="switchTab('students')" role="tab">?? Students</button>
+    <button class="tab-btn" id="tab-add" onclick="switchTab('add')" role="tab">? Add Student</button>
+    <button class="tab-btn" id="tab-compare" onclick="switchTab('compare')" role="tab">? Compare</button>
+    <button class="tab-btn" id="tab-report" onclick="switchTab('report')" role="tab">?? Report</button>
+  </nav>
+
+  <!-- -------------------------------------- DASHBOARD -- -->
+  <section class="section active" id="sec-dashboard">
+
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card violet">
+        <div class="stat-icon">?????</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-label">Total Students</div>
+      </div>
+      <div class="stat-card sky">
+        <div class="stat-icon">??</div>
+        <div class="stat-value" id="stat-avg">—</div>
+        <div class="stat-label">Class Average</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">?</div>
+        <div class="stat-value" id="stat-pass">—</div>
+        <div class="stat-label">Passed</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-icon">?</div>
+        <div class="stat-value" id="stat-fail">—</div>
+        <div class="stat-label">Failed</div>
+      </div>
+    </div>
+
+    <!-- Topper -->
+    <div class="topper-card" id="topper-card">
+      <div class="topper-avatar">??</div>
+      <div class="topper-info">
+        <div class="topper-label">?? Class Topper</div>
+        <div class="topper-name" id="topper-name">Loading...</div>
+        <div class="topper-avg" id="topper-avg"></div>
+      </div>
+      <div class="topper-crown">??</div>
+    </div>
+
+    <!-- Grade Distribution -->
+    <div class="grade-bar-wrap">
+      <div class="grade-bar-title">Grade Distribution</div>
+      <div class="grade-bars" id="grade-bars">
+        <div class="grade-bar-col">
+          <div class="grade-bar-fill A" id="bar-A" style="height:0"></div>
+          <div class="grade-bar-label">A</div>
+          <div class="grade-bar-count" id="cnt-A">0</div>
+        </div>
+        <div class="grade-bar-col">
+          <div class="grade-bar-fill B" id="bar-B" style="height:0"></div>
+          <div class="grade-bar-label">B</div>
+          <div class="grade-bar-count" id="cnt-B">0</div>
+        </div>
+        <div class="grade-bar-col">
+          <div class="grade-bar-fill C" id="bar-C" style="height:0"></div>
+          <div class="grade-bar-label">C</div>
+          <div class="grade-bar-count" id="cnt-C">0</div>
+        </div>
+        <div class="grade-bar-col">
+          <div class="grade-bar-fill D" id="bar-D" style="height:0"></div>
+          <div class="grade-bar-label">D</div>
+          <div class="grade-bar-count" id="cnt-D">0</div>
+        </div>
+        <div class="grade-bar-col">
+          <div class="grade-bar-fill F" id="bar-F" style="height:0"></div>
+          <div class="grade-bar-label">F</div>
+          <div class="grade-bar-count" id="cnt-F">0</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- -------------------------------------- STUDENTS -- -->
+  <section class="section" id="sec-students">
+
+    <div class="search-row">
+      <div class="search-wrap">
+        <span class="search-icon">??</span>
+        <input type="text" id="search-input" placeholder="Search student by name…" oninput="filterStudents()" />
+      </div>
+      <select id="filter-section" onchange="filterStudents()">
+        <option value="">All Sections</option>
+        <option value="A">Section A</option>
+        <option value="B">Section B</option>
+        <option value="C">Section C</option>
+      </select>
+      <button class="btn btn-primary" onclick="loadStudents()">?? Refresh</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="students-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Section</th>
+            <th>Marks</th>
+            <th>Average</th>
+            <th>Grade</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="students-tbody">
+          <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-dim)"><div class="spinner"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- -------------------------------------- ADD STUDENT -- -->
+  <section class="section" id="sec-add">
+    <div class="form-card">
+      <div class="form-title">? Add New Student</div>
+      <div class="form-subtitle">Your Python <code style="background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:4px">create_student()</code> function powers this!</div>
+
+      <form class="form-grid" id="add-form" onsubmit="addStudent(event)">
+        <div class="form-group">
+          <label class="form-label" for="new-name">Student Name</label>
+          <input type="text" id="new-name" placeholder="e.g. Riya Sharma" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="new-section">Section</label>
+          <select id="new-section">
+            <option value="A">Section A</option>
+            <option value="B">Section B</option>
+            <option value="C">Section C</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="new-marks">Marks (comma-separated)</label>
+          <input type="text" id="new-marks" placeholder="e.g. 85, 90, 78" required />
+          <div class="marks-hint">Enter marks for each subject separated by commas</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="add-btn" style="margin-top:8px">
+          ? Add Student
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- -------------------------------------- COMPARE -- -->
+  <section class="section" id="sec-compare">
+    <div class="compare-card">
+      <div class="form-title">? Compare Students</div>
+      <div class="form-subtitle">Uses your Day 3 <code style="background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:4px">compare_students()</code> function</div>
+
+      <div class="compare-grid">
+        <div class="form-group">
+          <label class="form-label">Student A</label>
+          <input type="text" id="compare-a" placeholder="e.g. Uday" />
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="form-group">
+          <label class="form-label">Student B</label>
+          <input type="text" id="compare-b" placeholder="e.g. Sneha" />
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:20px" onclick="doCompare()">? Compare Now</button>
+
+      <div class="compare-result" id="compare-result"></div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------- REPORT -- -->
+  <section class="section" id="sec-report">
+
+    <div class="report-controls">
+      <select id="report-section" onchange="loadReport()">
+        <option value="">All Sections</option>
+        <option value="A">Section A</option>
+        <option value="B">Section B</option>
+        <option value="C">Section C</option>
+      </select>
+      <button class="btn btn-green" onclick="exportCSV()">?? Export CSV</button>
+      <button class="btn btn-secondary" onclick="loadReport()">?? Refresh</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Section</th>
+            <th>Average</th>
+            <th>Grade</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="report-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-dim)"><div class="spinner"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+</div><!-- /container -->
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script>
+const API = "http://localhost:5000/api";
+
+// --------------- TAB SWITCHING ---------------
+function switchTab(name) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.getElementById("tab-" + name).classList.add("active");
+  document.getElementById("sec-" + name).classList.add("active");
+
+  if (name === "dashboard") { loadStats(); }
+  if (name === "students")  { loadStudents(); }
+  if (name === "report")    { loadReport(); }
+}
+
+// --------------- TOAST ---------------
+function showToast(msg, type = "success") {
+  const t = document.createElement("div");
+  t.className = type === "success" ? "success-toast" : "error-toast";
+  t.textContent = msg;
+  document.getElementById("toast-container").appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// --------------- STATS / DASHBOARD ---------------
+let _allStudents = [];
+
+async function loadStats() {
+  try {
+    const [stats, topper] = await Promise.all([
+      fetch(`${API}/stats`).then(r => r.json()),
+      fetch(`${API}/topper`).then(r => r.json()),
+    ]);
+
+    animateNumber("stat-total", stats.count);
+    animateNumber("stat-avg", stats.avg_of_avgs, true);
+    animateNumber("stat-pass", stats.pass_count);
+    animateNumber("stat-fail", stats.fail_count);
+
+    document.getElementById("topper-name").textContent = stats.topper || "—";
+    document.getElementById("topper-avg").textContent = topper.avg
+      ? `Average: ${topper.avg}  ·  Grade: ${topper.grade}`
+      : "";
+
+    // Grade bars
+    const gradeData = stats.grade_distribution || {};
+    const maxCount = Math.max(...Object.values(gradeData), 1);
+    const maxHeight = 60; // px
+    ["A","B","C","D","F"].forEach(g => {
+      const count = gradeData[g] || 0;
+      const height = Math.round((count / maxCount) * maxHeight);
+      document.getElementById("bar-" + g).style.height = height + "px";
+      document.getElementById("cnt-" + g).textContent = count;
+    });
+
+  } catch (e) {
+    showToast("Cannot connect to backend. Is Flask running?", "error");
+  }
+}
+
+function animateNumber(id, target, isFloat = false) {
+  const el = document.getElementById(id);
+  const start = 0;
+  const duration = 700;
+  const startTime = performance.now();
+  function update(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const val = start + (target - start) * ease;
+    el.textContent = isFloat ? val.toFixed(1) : Math.round(val);
+    if (t < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// --------------- STUDENTS ---------------
+async function loadStudents() {
+  try {
+    const data = await fetch(`${API}/students`).then(r => r.json());
+    _allStudents = data;
+    renderStudents(data);
+  } catch (e) {
+    document.getElementById("students-tbody").innerHTML =
+      `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--accent-red)">?? Failed to load. Is Flask running?</td></tr>`;
+  }
+}
+
+function renderStudents(list) {
+  const tbody = document.getElementById("students-tbody");
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">??</div><p>No students found.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map((s, i) => `
+    <tr id="row-${s.name}">
+      <td style="color:var(--text-dim);font-size:12px">${i + 1}</td>
+      <td style="font-weight:600">${s.name}</td>
+      <td><span class="section-tag">${s.section}</span></td>
+      <td style="color:var(--text-muted);font-size:12px">${(s.marks || []).join(", ")}</td>
+      <td>
+        <div class="avg-bar-wrap">
+          <div class="avg-bar-bg">
+            <div class="avg-bar-fill" style="width:${s.avg}%"></div>
+          </div>
+          <span class="avg-text">${s.avg}</span>
+        </div>
+      </td>
+      <td><span class="grade-pill grade-${s.grade}">${s.grade}</span></td>
+      <td><span class="status-pill status-${s.status}">${s.status}</span></td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-danger" onclick="deleteStudent('${s.name}')">??</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function filterStudents() {
+  const q = document.getElementById("search-input").value.toLowerCase();
+  const sec = document.getElementById("filter-section").value;
+  const filtered = _allStudents.filter(s => {
+    const matchName = s.name.toLowerCase().includes(q);
+    const matchSec  = !sec || s.section === sec;
+    return matchName && matchSec;
+  });
+  renderStudents(filtered);
+}
+
+async function deleteStudent(name) {
+  if (!confirm(`Delete student "${name}"?`)) return;
+  try {
+    const res = await fetch(`${API}/students/${encodeURIComponent(name)}`, { method: "DELETE" });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(`? ${data.message}`);
+      loadStudents();
+      loadStats();
+    } else {
+      showToast("? " + data.error, "error");
+    }
+  } catch (e) {
+    showToast("? Error connecting to backend", "error");
+  }
+}
+
+// --------------- ADD STUDENT ---------------
+async function addStudent(e) {
+  e.preventDefault();
+  const name    = document.getElementById("new-name").value.trim();
+  const section = document.getElementById("new-section").value;
+  const marksRaw = document.getElementById("new-marks").value;
+  const marks   = marksRaw.split(",").map(m => parseFloat(m.trim())).filter(m => !isNaN(m));
+
+  if (!name) { showToast("Name is required", "error"); return; }
+  if (!marks.length) { showToast("Enter valid marks", "error"); return; }
+
+  const btn = document.getElementById("add-btn");
+  btn.innerHTML = '<div class="spinner"></div> Adding…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/students`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, marks, section }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(`?? ${data.name} added! Average: ${data.avg} (${data.grade})`);
+      document.getElementById("add-form").reset();
+    } else {
+      showToast("? " + data.error, "error");
+    }
+  } catch (e) {
+    showToast("? Error connecting to backend", "error");
+  } finally {
+    btn.innerHTML = "? Add Student";
+    btn.disabled = false;
+  }
+}
+
+// --------------- COMPARE ---------------
+async function doCompare() {
+  const a = document.getElementById("compare-a").value.trim();
+  const b = document.getElementById("compare-b").value.trim();
+  if (!a || !b) { showToast("Enter both student names", "error"); return; }
+
+  try {
+    const res = await fetch(`${API}/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`);
+    const data = await res.json();
+    const el = document.getElementById("compare-result");
+    if (res.ok) {
+      el.textContent = data.result;
+      el.style.display = "block";
+    } else {
+      showToast("? " + data.error, "error");
+      el.style.display = "none";
+    }
+  } catch (e) {
+    showToast("? Error connecting to backend", "error");
+  }
+}
+
+// --------------- REPORT ---------------
+async function loadReport() {
+  const sec = document.getElementById("report-section").value;
+  const url = sec ? `${API}/report?section=${sec}` : `${API}/report`;
+  try {
+    const data = await fetch(url).then(r => r.json());
+    const medals = ["??","??","??"];
+    document.getElementById("report-tbody").innerHTML = data.map(r => `
+      <tr>
+        <td><span class="rank-medal">${medals[r.rank-1] || ""}</span> ${r.rank}</td>
+        <td style="font-weight:600">${r.name}</td>
+        <td><span class="section-tag">${r.section}</span></td>
+        <td>
+          <div class="avg-bar-wrap">
+            <div class="avg-bar-bg">
+              <div class="avg-bar-fill" style="width:${r.avg}%"></div>
+            </div>
+            <span class="avg-text">${r.avg}</span>
+          </div>
+        </td>
+        <td><span class="grade-pill grade-${r.grade}">${r.grade}</span></td>
+        <td><span class="status-pill status-${r.status}">${r.status}</span></td>
+      </tr>
+    `).join("");
+  } catch (e) {
+    document.getElementById("report-tbody").innerHTML =
+      `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--accent-red)">?? Failed to load</td></tr>`;
+  }
+}
+
+async function exportCSV() {
+  const sec = document.getElementById("report-section").value;
+  const url = sec ? `${API}/export?section=${sec}` : `${API}/export`;
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "student_report.csv";
+  a.click();
+  showToast("?? CSV export started!");
+}
+
+// --------------- INIT ---------------
+loadStats();
+</script>
+</body>
+</html>
+

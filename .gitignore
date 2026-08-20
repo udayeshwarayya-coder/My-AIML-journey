@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Data files (large)
+*.csv
+*.xlsx
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.parquet
+!sample_data/*.csv
+
+# ML Models (large)
+*.pt
+*.pth
+*.onnx
+*.pb
+models/saved/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Flask
+instance/
+.flaskenv
+flask_session/
+
+# Environment
+.env
+*.env
+
+# Logs
+*.log
+logs/

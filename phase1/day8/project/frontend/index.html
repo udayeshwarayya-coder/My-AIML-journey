@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayrollPro — Employee Payroll Dashboard</title>
+  <meta name="description" content="Tikota Group of Companies — Employee payroll management system with department analytics, pay slips, and salary reports." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── DESIGN TOKENS ── */
+    :root {
+      --bg:          #0a0d14;
+      --surface:     #111623;
+      --surface2:    #181e2e;
+      --border:      rgba(255,255,255,0.07);
+      --border-glow: rgba(99,179,237,0.3);
+
+      --accent:      #63b3ed;
+      --accent2:     #9f7aea;
+      --green:       #68d391;
+      --amber:       #f6ad55;
+      --red:         #fc8181;
+      --teal:        #4fd1c5;
+
+      --text:        #e2e8f0;
+      --text-muted:  #718096;
+      --text-dim:    #4a5568;
+
+      --radius:      14px;
+      --radius-sm:   8px;
+      --shadow:      0 4px 24px rgba(0,0,0,0.4);
+      --shadow-glow: 0 0 40px rgba(99,179,237,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 99px; }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,13,20,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+    }
+    .header-inner {
+      max-width: 1280px; margin: 0 auto; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.3px; }
+    .logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .logo-sub { font-size: 0.7rem; color: var(--text-muted); font-weight: 400; }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+
+    /* ── STATUS DOT ── */
+    .api-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; color: var(--text-muted);
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--text-dim); transition: background 0.3s;
+    }
+    .status-dot.online  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.offline { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+
+    /* ── LAYOUT ── */
+    main { max-width: 1280px; margin: 0 auto; padding: 2rem; }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, rgba(99,179,237,0.08) 0%, rgba(159,122,234,0.08) 100%);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 2rem; margin-bottom: 2rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 2rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -50%; right: -10%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(99,179,237,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-text h1 {
+      font-size: 1.8rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; margin-bottom: 0.4rem;
+    }
+    .hero-text p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .top-earner-badge {
+      background: rgba(159,122,234,0.12); border: 1px solid rgba(159,122,234,0.3);
+      border-radius: var(--radius); padding: 1.2rem 1.8rem;
+      text-align: center; min-width: 200px; position: relative; z-index: 1;
+    }
+    .top-earner-badge .badge-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent2); font-weight: 600; margin-bottom: 0.5rem; }
+    .top-earner-badge .badge-name  { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .top-earner-badge .badge-pay   { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; color: var(--green); font-weight: 500; }
+
+    /* ── STATS GRID ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.4rem;
+      position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.2s;
+    }
+    .stat-card:hover { border-color: var(--border-glow); transform: translateY(-2px); }
+    .stat-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .stat-card.blue::after   { background: linear-gradient(90deg, var(--accent),  transparent); }
+    .stat-card.purple::after { background: linear-gradient(90deg, var(--accent2), transparent); }
+    .stat-card.green::after  { background: linear-gradient(90deg, var(--green),   transparent); }
+    .stat-card.amber::after  { background: linear-gradient(90deg, var(--amber),   transparent); }
+    .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 0.7rem; }
+    .stat-value { font-size: 2rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; letter-spacing: -1px; }
+    .stat-value.blue   { color: var(--accent); }
+    .stat-value.purple { color: var(--accent2); }
+    .stat-value.green  { color: var(--green); }
+    .stat-value.amber  { color: var(--amber); }
+    .stat-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+    /* ── SECTION TITLES ── */
+    .section-title {
+      font-size: 1rem; font-weight: 700; letter-spacing: -0.2px;
+      margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::before {
+      content: ''; width: 3px; height: 18px;
+      background: linear-gradient(to bottom, var(--accent), var(--accent2));
+      border-radius: 2px;
+    }
+
+    /* ── TWO-COLUMN ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+    /* ── PANEL ── */
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+
+    /* ── FORM ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+    input, select {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-family: 'Inter', sans-serif; font-size: 0.9rem;
+      padding: 0.65rem 0.9rem; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,179,237,0.12); }
+    select option { background: var(--surface2); }
+
+    /* ── BUTTONS ── */
+    .btn { border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600; border-radius: var(--radius-sm); transition: all 0.2s; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #4299e1);
+      color: #000; padding: 0.75rem 1.5rem; font-size: 0.9rem; width: 100%; margin-top: 1rem;
+    }
+    .btn-primary:hover   { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,179,237,0.35); }
+    .btn-primary:active  { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.78rem; }
+    .btn-danger { background: rgba(252,129,129,0.15); color: var(--red); border: 1px solid rgba(252,129,129,0.25); }
+    .btn-danger:hover { background: rgba(252,129,129,0.25); }
+
+    /* ── TABLE ── */
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .table-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .search-box {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 0.5rem 0.9rem;
+    }
+    .search-box input { background: none; border: none; box-shadow: none; padding: 0; font-size: 0.85rem; width: 180px; }
+    .search-box:focus-within { border-color: var(--accent); }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 0.75rem 1.2rem; font-size: 0.72rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);
+      text-align: left; background: var(--surface2); border-bottom: 1px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(99,179,237,0.04); }
+    tbody td { padding: 0.9rem 1.2rem; font-size: 0.88rem; }
+
+    /* ── BADGES ── */
+    .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.7rem; border-radius: 99px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.3px; }
+    .badge-employee { background: rgba(99,179,237,0.15);  color: var(--accent);  border: 1px solid rgba(99,179,237,0.25); }
+    .badge-manager  { background: rgba(159,122,234,0.15); color: var(--accent2); border: 1px solid rgba(159,122,234,0.25); }
+    .badge-intern   { background: rgba(246,173,85,0.15);  color: var(--amber);   border: 1px solid rgba(246,173,85,0.25); }
+    .pay-amount { font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: var(--green); font-weight: 500; }
+
+    /* ── DEPT CARDS ── */
+    .dept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+    .dept-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; transition: border-color 0.2s, transform 0.2s; }
+    .dept-card:hover { border-color: var(--border-glow); transform: translateY(-2px); }
+    .dept-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.8rem; color: var(--accent); }
+    .dept-stat { display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0; border-bottom: 1px solid var(--border); font-size: 0.83rem; }
+    .dept-stat:last-child { border-bottom: none; }
+    .dept-stat-label { color: var(--text-muted); }
+    .dept-stat-value { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+    .dept-members { margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 4px; }
+    .member-chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 99px; padding: 0.2rem 0.6rem; font-size: 0.72rem; color: var(--text-muted); }
+
+    /* ── TAB BAR (new — for extra Day 5-7 features) ── */
+    .tab-bar { display: flex; gap: 4px; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px; }
+    .tab-btn { flex: 1; padding: 0.55rem 0.8rem; border: none; background: none; color: var(--text-muted); font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active { background: var(--surface2); color: var(--accent); border: 1px solid var(--border-glow); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── PAYROLL PANEL (Day 6: run_payroll) ── */
+    .payslip-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.85rem 1.2rem; border-bottom: 1px solid var(--border);
+      font-size: 0.88rem; transition: background 0.15s;
+    }
+    .payslip-row:last-child { border-bottom: none; }
+    .payslip-row:hover { background: rgba(99,179,237,0.03); }
+    .payslip-name { font-weight: 600; }
+    .payslip-id { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── COMPARE PANEL (Day 7: dunders) ── */
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .compare-result { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem 1.2rem; margin-top: 1rem; }
+    .compare-row { display: flex; justify-content: space-between; padding: 0.45rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .compare-row:last-child { border-bottom: none; }
+    .compare-key { color: var(--text-muted); font-size: 0.78rem; }
+    .compare-val { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+    .true-val  { color: var(--green); }
+    .false-val { color: var(--red); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      z-index: 200; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s; backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2rem; max-width: 480px; width: 90%;
+      transform: scale(0.95); transition: transform 0.2s;
+      box-shadow: var(--shadow), var(--shadow-glow);
+    }
+    .modal-overlay.open .modal { transform: scale(1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-title { font-weight: 700; font-size: 1.1rem; }
+    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; line-height: 1; padding: 0.2rem; }
+    .slip-row { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .slip-row:last-child { border-bottom: none; }
+    .slip-key { color: var(--text-muted); }
+    .slip-val { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+    .slip-total { color: var(--green); font-size: 1rem !important; }
+
+    /* ── REPORT ── */
+    .report-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+    .type-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem 1.2rem; }
+    .type-card-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.5rem; }
+    .type-card-count { font-size: 1.6rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+    .type-card-total { font-size: 0.82rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-top: 0.2rem; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: var(--surface); border: 1px solid var(--border-glow);
+      border-radius: var(--radius-sm); padding: 1rem 1.5rem;
+      font-size: 0.88rem; box-shadow: var(--shadow); z-index: 300;
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .toast.show  { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(104,211,145,0.4); }
+    .toast.error   { border-color: rgba(252,129,129,0.4); color: var(--red); }
+
+    /* ── EMPTY STATE ── */
+    .empty { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+
+    /* ── LOADING SPINNER ── */
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .two-col    { grid-template-columns: 1fr; }
+      .report-grid { grid-template-columns: 1fr; }
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      main { padding: 1rem; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .form-grid  { grid-template-columns: 1fr; }
+      .hero       { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">💼</div>
+      <div>
+        PayrollPro
+        <div class="logo-sub">Tikota Group of Companies</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="api-status">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-text">Connecting...</span>
+      </div>
+      <button class="btn btn-sm" id="btn-gen-report" onclick="generateReport()"
+        style="background:rgba(99,179,237,0.12);color:var(--accent);border:1px solid rgba(99,179,237,0.25);">
+        📊 Full Report
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Employee Payroll Dashboard</h1>
+      <p>Manage employees, view department analytics, and generate pay slips — all in one place.</p>
+    </div>
+    <div class="top-earner-badge" id="top-earner-badge">
+      <div class="badge-label">🏆 Top Earner</div>
+      <div class="badge-name" id="top-name">—</div>
+      <div class="badge-pay" id="top-pay">Rs.0</div>
+    </div>
+  </section>
+
+  <!-- ── STATS ── -->
+  <div class="stats-grid">
+    <div class="stat-card blue">
+      <div class="stat-label">Total Employees</div>
+      <div class="stat-value blue" id="stat-total">0</div>
+      <div class="stat-sub">All types combined</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Total Payroll</div>
+      <div class="stat-value purple" id="stat-payroll">Rs.0</div>
+      <div class="stat-sub">Monthly disbursement</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Departments</div>
+      <div class="stat-value green" id="stat-depts">0</div>
+      <div class="stat-sub">Active departments</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Avg. Package</div>
+      <div class="stat-value amber" id="stat-avg">Rs.0</div>
+      <div class="stat-sub">Per employee</div>
+    </div>
+  </div>
+
+  <!-- ── ADD EMPLOYEE + DEPARTMENTS ── -->
+  <div class="two-col">
+
+    <!-- Add Employee Panel -->
+    <div class="panel">
+      <div class="section-title">Add Employee</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="emp-name">Name</label>
+          <input id="emp-name" type="text" placeholder="Full Name" />
+        </div>
+        <div class="form-group">
+          <label for="emp-id">Employee ID</label>
+          <input id="emp-id" type="text" placeholder="E001 / M001 / I001" />
+        </div>
+        <div class="form-group">
+          <label for="emp-type">Type</label>
+          <select id="emp-type" onchange="toggleExtraFields()">
+            <option value="Employee">Employee</option>
+            <option value="Manager">Manager</option>
+            <option value="Intern">Intern</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="emp-dept">Department</label>
+          <input id="emp-dept" type="text" placeholder="Engineering / Marketing..." />
+        </div>
+        <div class="form-group">
+          <label for="emp-salary">Base Salary (Rs.)</label>
+          <input id="emp-salary" type="number" placeholder="50000" />
+        </div>
+
+        <!-- Manager extra -->
+        <div class="form-group" id="field-team-size" style="display:none;">
+          <label for="emp-team-size">Team Size</label>
+          <input id="emp-team-size" type="number" placeholder="5" min="0" />
+        </div>
+
+        <!-- Intern extras -->
+        <div class="form-group" id="field-stipend" style="display:none;">
+          <label for="emp-stipend">Stipend (Rs.)</label>
+          <input id="emp-stipend" type="number" placeholder="15000" />
+        </div>
+        <div class="form-group" id="field-college" style="display:none;">
+          <label for="emp-college">College</label>
+          <input id="emp-college" type="text" placeholder="IIT / NIT..." />
+        </div>
+      </div>
+      <button class="btn btn-primary" id="add-btn" onclick="addEmployee()">+ Add Employee</button>
+    </div>
+
+    <!-- Department Summary -->
+    <div class="panel">
+      <div class="section-title">Department Summary</div>
+      <!--
+        BACKEND NEEDED: GET /api/departments
+        Returns department_summary(employees) from your Day 8 practice.py
+        Response format:
+        {
+          "Engineering": { "count": 3, "total_payroll": 185000,
+                           "avg_salary": 61667, "members": ["Uday","Arjun","Ravi"] }
+        }
+      -->
+      <div class="dept-grid" id="dept-grid">
+        <div class="empty">
+          <div class="empty-icon">🏢</div>
+          <p>Add employees to see department stats</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── EMPLOYEE TABLE ── -->
+  <div class="table-wrap" style="margin-bottom: 1.5rem;">
+    <div class="table-header">
+      <div class="section-title" style="margin-bottom:0;">All Employees</div>
+      <div class="search-box">
+        <span style="color:var(--text-muted);">🔍</span>
+        <input id="search-input" type="text" placeholder="Search by name or dept..." oninput="filterTable()" />
+      </div>
+    </div>
+    <!--
+      BACKEND NEEDED: GET /api/employees
+      Returns [emp.get_details() for emp in employees]
+      Each item: { name, emp_id, department, type, base_salary, total_pay, ... }
+    -->
+    <table>
+      <thead>
+        <tr>
+          <th>Employee</th><th>ID</th><th>Department</th><th>Type</th><th>Pay / Month</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="emp-table-body">
+        <tr><td colspan="6" class="empty">
+          <div class="empty-icon">👤</div><p>No employees added yet</p>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── TAB BAR — Day 5, 6, 7 Feature Panels ── -->
+  <div class="tab-bar" style="margin-bottom:0;">
+    <button class="tab-btn active" onclick="switchTab('tab-payroll')" id="tabBtn-payroll">💰 Run Payroll</button>
+    <button class="tab-btn" onclick="switchTab('tab-compare')" id="tabBtn-compare">⚖️ Compare (Dunders)</button>
+    <button class="tab-btn" onclick="switchTab('tab-summary')" id="tabBtn-summary">📋 Company Summary</button>
+  </div>
+
+  <!-- TAB 1: Run Payroll (Day 6: run_payroll()) -->
+  <div class="tab-panel active" id="tab-payroll" style="margin-bottom:1.5rem;">
+    <div class="panel" style="margin-top:0; border-top-left-radius:0; border-top-right-radius:0; border-top:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <div class="section-title" style="margin-bottom:0;">Payroll Run — All Pay Slips</div>
+        <button class="btn btn-sm" onclick="runPayroll()"
+          style="background:rgba(104,211,145,0.12);color:var(--green);border:1px solid rgba(104,211,145,0.25);">
+          ▶ Run Payroll
+        </button>
+      </div>
+      <!--
+        BACKEND NEEDED: GET /api/run-payroll
+        Mirrors Day 6 run_payroll() function.
+        Response: { "payslips": [ {name, emp_id, type, pay, line}, ... ] }
+      -->
+      <div id="payroll-list">
+        <div class="empty"><div class="empty-icon">💳</div><p>Click "Run Payroll" to generate</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Compare Employees (Day 7: Dunder methods) -->
+  <div class="tab-panel" id="tab-compare" style="margin-bottom:1.5rem;">
+    <div class="panel" style="margin-top:0; border-top-left-radius:0; border-top-right-radius:0; border-top:none;">
+      <div class="section-title">Compare Two Employees — Day 7 Dunder Methods</div>
+      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;">
+        Uses __eq__, __lt__, __gt__, __add__, __len__, __bool__ from your Day 7 practice.py
+      </p>
+      <!--
+        BACKEND NEEDED: GET /api/compare?id1=E001&id2=M001
+        Uses all Day 7 dunder methods.
+        Response: { employee_1, employee_2, are_equal, emp1_earns_less, emp1_earns_more,
+                    combined_pay, emp1_len, emp2_len, emp1_is_active, emp2_is_active, higher_earner }
+      -->
+      <div class="compare-grid">
+        <div class="form-group">
+          <label for="cmp-id1">Employee 1 ID</label>
+          <input id="cmp-id1" type="text" placeholder="E001" />
+        </div>
+        <div class="form-group">
+          <label for="cmp-id2">Employee 2 ID</label>
+          <input id="cmp-id2" type="text" placeholder="M001" />
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="compareEmployees()" style="margin-top:0.8rem;">Compare</button>
+      <div id="compare-result"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Company Summary (Day 5 Bonus: employees_summary()) -->
+  <div class="tab-panel" id="tab-summary" style="margin-bottom:1.5rem;">
+    <div class="panel" style="margin-top:0; border-top-left-radius:0; border-top-right-radius:0; border-top:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <div class="section-title" style="margin-bottom:0;">Company Summary — Day 5 employees_summary()</div>
+        <button class="btn btn-sm" onclick="loadSummary()"
+          style="background:rgba(159,122,234,0.12);color:var(--accent2);border:1px solid rgba(159,122,234,0.25);">
+          Refresh
+        </button>
+      </div>
+      <!--
+        BACKEND NEEDED: GET /api/summary
+        Mirrors Day 5 bonus employees_summary().
+        Response: { company, total_employees, total_base_payroll, managers:[], interns:[], employees:[] }
+      -->
+      <div id="summary-content">
+        <div class="empty"><div class="empty-icon">🏢</div><p>Click Refresh to load</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAYROLL REPORT (Day 8: payroll_report()) ── -->
+  <div class="panel" id="report-section" style="display:none; margin-bottom: 1.5rem;">
+    <!--
+      BACKEND NEEDED: GET /api/report
+      Returns payroll_report(employees) from your Day 8 practice.py
+      Response: { company, total_employees, total_payroll, by_type, highest_earner, pay_slips }
+    -->
+    <div class="section-title">Full Payroll Report — Day 8 payroll_report()</div>
+    <div class="report-grid" id="report-types"></div>
+    <div id="report-pay-slips"></div>
+  </div>
+
+</main>
+
+<!-- ── PAY SLIP MODAL ── -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📄 Pay Slip</div>
+      <button class="close-btn" onclick="closeModalDirect()">×</button>
+    </div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ════════════════════════════════════════════════
+     CONFIG — Change this if your Flask port differs
+  ════════════════════════════════════════════════ */
+  const API = 'http://localhost:5000';
+
+  /* ════════════════════════════════════════════════
+     STATE
+  ════════════════════════════════════════════════ */
+  let allEmployees = [];   // local cache from GET /api/employees
+
+  /* ════════════════════════════════════════════════
+     API HELPER — wrapper around fetch with error handling
+  ════════════════════════════════════════════════ */
+  async function api(path, options = {}) {
+    const res = await fetch(API + path, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    return data;
+  }
+
+  /* ════════════════════════════════════════════════
+     HEALTH CHECK — Check if Flask is running
+     BACKEND NEEDED: any endpoint that responds (we use GET /api/employees)
+  ════════════════════════════════════════════════ */
+  async function checkHealth() {
+    try {
+      await fetch(API + '/api/employees');
+      document.getElementById('status-dot').className  = 'status-dot online';
+      document.getElementById('status-text').textContent = 'Backend Online';
+    } catch {
+      document.getElementById('status-dot').className  = 'status-dot offline';
+      document.getElementById('status-text').textContent = 'Backend Offline';
+    }
+  }
+
+  /* ════════════════════════════════════════════════
+     LOAD ALL — fetches data from all 3 main endpoints
+     Calls: GET /api/employees, /api/departments, /api/top-earner
+  ════════════════════════════════════════════════ */
+  async function loadAll() {
+    try {
+      // ── GET /api/employees ──────────────────────
+      // Your Day 5 get_details() method drives each item
+      allEmployees = await api('/api/employees');
+
+      // ── GET /api/departments ────────────────────
+      // Your Day 8 department_summary() function
+      const depts = await api('/api/departments');
+
+      // ── GET /api/top-earner ─────────────────────
+      // Your Day 8 highest_earner() + Day 6 calculate_pay
+      const top = await api('/api/top-earner');
+
+      renderStats(allEmployees, depts);
+      renderTable(allEmployees);
+      renderDepts(depts);
+      renderTopEarner(top);
+      document.getElementById('report-section').style.display = 'none';
+
+    } catch (err) {
+      showToast('Cannot reach backend: ' + err.message, 'error');
+    }
+  }
+
+  /* ════════════════════════════════════════════════
+     ADD EMPLOYEE
+     BACKEND NEEDED: POST /api/employees
+     Body: { name, emp_id, type, department, base_salary, team_size?, stipend?, college? }
+     Response: emp.get_details() with 201
+     Uses: Employee / Manager / Intern __init__, Day 5 get_details()
+  ════════════════════════════════════════════════ */
+  async function addEmployee() {
+    const name   = document.getElementById('emp-name').value.trim();
+    const emp_id = document.getElementById('emp-id').value.trim();
+    const type   = document.getElementById('emp-type').value;
+    const dept   = document.getElementById('emp-dept').value.trim() || 'General';
+    const salary = parseInt(document.getElementById('emp-salary').value) || 0;
+
+    if (!name || !emp_id) { showToast('Name and ID are required!', 'error'); return; }
+
+    const body = { name, emp_id, type, department: dept, base_salary: salary };
+    if (type === 'Manager') {
+      body.team_size = parseInt(document.getElementById('emp-team-size').value) || 0;
+    }
+    if (type === 'Intern') {
+      body.stipend = parseInt(document.getElementById('emp-stipend').value) || 0;
+      body.college = document.getElementById('emp-college').value.trim() || 'Unknown';
+    }
+
+    const btn = document.getElementById('add-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
+
+    try {
+      await api('/api/employees', { method: 'POST', body: JSON.stringify(body) });
+      showToast(`${name} added successfully! ✓`, 'success');
+      clearForm();
+      await loadAll();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '+ Add Employee';
+    }
+  }
+
+  /* ════════════════════════════════════════════════
+     REMOVE EMPLOYEE
+     BACKEND NEEDED: DELETE /api/employees/<emp_id>
+     Uses: Day 7 __eq__ (to match by emp_id in the list)
+     Response: { message: "removed" }
+  ════════════════════════════════════════════════ */
+  async function removeEmployee(emp_id) {
+    try {
+      await api(`/api/employees/${emp_id}`, { method: 'DELETE' });
+      showToast('Employee removed', 'success');
+      await loadAll();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  /* ════════════════════════════════════════════════
+     SHOW PAY SLIP (modal)
+     BACKEND NEEDED: GET /api/employees/<emp_id>/pay
+     Returns: { emp_id, name, type, base_salary, total_pay }
+     Uses: Day 5 calculate_base_pay() + Day 6 calculate_pay @property
+  ════════════════════════════════════════════════ */
+  async function showPaySlip(emp_id) {
+    try {
+      const data = await api(`/api/employees/${emp_id}/pay`);
+      const emp  = allEmployees.find(e => e.emp_id === emp_id) || {};
+
+      let rows = `
+        <div class="slip-row"><span class="slip-key">Name</span><span class="slip-val">${data.name}</span></div>
+        <div class="slip-row"><span class="slip-key">Employee ID</span><span class="slip-val">${data.emp_id}</span></div>
+        <div class="slip-row"><span class="slip-key">Department</span><span class="slip-val">${emp.department || '—'}</span></div>
+        <div class="slip-row"><span class="slip-key">Type</span><span class="slip-val">${data.type}</span></div>
+        <div class="slip-row"><span class="slip-key">Base Salary</span><span class="slip-val">${fmtRs(data.base_salary)}</span></div>`;
+
+      if (data.type === 'Manager') {
+        const teamData = await api(`/api/employees/${emp_id}/team-info`);
+        rows += `<div class="slip-row"><span class="slip-key">Team Size</span><span class="slip-val">${teamData.team_size}</span></div>`;
+        rows += `<div class="slip-row"><span class="slip-key">Team Bonus</span><span class="slip-val">${fmtRs(teamData.team_bonus)}</span></div>`;
+      }
+      if (data.type === 'Intern') {
+        const internData = await api(`/api/employees/${emp_id}/intern-info`);
+        rows += `<div class="slip-row"><span class="slip-key">College</span><span class="slip-val">${internData.college}</span></div>`;
+        rows += `<div class="slip-row"><span class="slip-key">Stipend</span><span class="slip-val">${fmtRs(internData.stipend)}</span></div>`;
+      }
+
+      rows += `<div class="slip-row" style="padding-top:1rem;border-top:1px solid var(--border-glow);margin-top:0.5rem;">
+        <span class="slip-key" style="font-weight:700;color:var(--text);">Total Pay</span>
+        <span class="slip-val slip-total">${fmtRs(data.total_pay)}</span>
+      </div>`;
+
+      document.getElementById('modal-content').innerHTML = rows;
+      document.getElementById('modal').classList.add('open');
+    } catch (err) {
+      showToast('Could not load pay slip: ' + err.message, 'error');
+    }
+  }
+
+  /* ════════════════════════════════════════════════
+     RUN PAYROLL (Day 6: run_payroll())
+     BACKEND NEEDED: GET /api/run-payroll
+     Mirrors your Day 6 run_payroll() function.
+     Response: { payslips: [{name, emp_id, type, pay, line}, ...] }
+  ════════════════════════════════════════════════ */
+  async function runPayroll() {
+    const container = document.getElementById('payroll-list');
+    container.innerHTML = '<div class="empty"><span class="spinner"></span></div>';
+    try {
+      const data = await api('/api/run-payroll');
+      if (!data.payslips.length) {
+        container.innerHTML = '<div class="empty"><div class="empty-icon">💳</div><p>No employees yet</p></div>';
+        return;
+      }
+      container.innerHTML = data.payslips.map(s => {
+        const badgeC = s.type === 'Manager' ? 'badge-manager' : s.type === 'Intern' ? 'badge-intern' : 'badge-employee';
+        return `<div class="payslip-row">
+          <div>
+            <div class="payslip-name">${s.name} <span class="badge ${badgeC}" style="margin-left:6px;">${s.type}</span></div>
+            <div class="payslip-id">${s.emp_id}</div>
+          </div>
+          <div class="pay-amount">${fmtRs(s.pay)}</div>
+        </div>`;
+      }).join('');
+    } catch (err) {
+      container.innerHTML = `<div class="empty"><p style="color:var(--red);">${err.message}</p></div>`;
+    }
+  }
+
+  /* ════════════════════════════════════════════════
+     COMPARE EMPLOYEES (Day 7: Dunder methods)
+     BACKEND NEEDED: GET /api/compare?id1=E001&id2=M001
+     Uses: __eq__, __lt__, __gt__, __add__, __len__, __bool__
+     Response: { employee_1, employee_2, are_equal, emp1_earns_less, emp1_earns_more,
+                 combined_pay, emp1_len, emp2_len, emp1_is_active, emp2_is_active, higher_earner }
+  ════════════════════════════════════════════════ */
+  async function compareEmployees() {
+    const id1 = document.getElementById('cmp-id1').value.trim();
+    const id2 = document.getElementById('cmp-id2').value.trim();
+    if (!id1 || !id2) { showToast('Enter both IDs', 'error'); return; }
+
+    const container = document.getElementById('compare-result');
+    container.innerHTML = '<div style="text-align:center;padding:1rem;"><span class="spinner"></span></div>';
+
+    try {
+      const d = await api(`/api/compare?id1=${id1}&id2=${id2}`);
+      const bool = (v) => v
+        ? `<span class="compare-val true-val">True ✓</span>`
+        : `<span class="compare-val false-val">False ✗</span>`;
+
+      container.innerHTML = `<div class="compare-result">
+        <div class="compare-row">
+          <span class="compare-key">emp1 == emp2 &nbsp;(__eq__)</span>
+          ${bool(d.are_equal)}
+        </div>
+        <div class="compare-row">
+          <span class="compare-key">${d.employee_1.name} < ${d.employee_2.name} &nbsp;(__lt__)</span>
+          ${bool(d.emp1_earns_less)}
+        </div>
+        <div class="compare-row">
+          <span class="compare-key">${d.employee_1.name} > ${d.employee_2.name} &nbsp;(__gt__)</span>
+          ${bool(d.emp1_earns_more)}
+        </div>
+        <div class="compare-row">
+          <span class="compare-key">emp1 + emp2 &nbsp;(__add__ → combined pay)</span>
+          <span class="compare-val">${fmtRs(d.combined_pay)}</span>
+        </div>
+        <div class="compare-row">
+          <span class="compare-key">len(${d.employee_1.name}) &nbsp;(__len__ → salary ÷ 10000)</span>
+          <span class="compare-val">${d.emp1_len}</span>
+        </div>
+        <div class="compare-row">
+          <span class="compare-key">len(${d.employee_2.name}) &nbsp;(__len__ → salary ÷ 10000)</span>
+          <span class="compare-val">${d.emp2_len}</span>
+        </div>
+        <div class="compare-row">
+          <span class="compare-key">bool(${d.employee_1.name}) &nbsp;(__bool__ → pay > 0)</span>
+          ${bool(d.emp1_is_active)}
+        </div>
+        <div class="compare-row">
+          <span class="compare-key">bool(${d.employee_2.name}) &nbsp;(__bool__ → pay > 0)</span>
+          ${bool(d.emp2_is_active)}
+        </div>
+        <div class="compare-row" style="margin-top:0.5rem;">
+          <span class="compare-key" style="font-weight:700;color:var(--text);">🏆 Higher Earner</span>
+          <span class="compare-val" style="color:var(--green);">${d.higher_earner}</span>
+        </div>
+      </div>`;
+    } catch (err) {
+      container.innerHTML = `<div class="compare-result" style="color:var(--red);">${err.message}</div>`;
+    }
+  }
+
+  /* ════════════════════════════════════════════════
+     COMPANY SUMMARY (Day 5 Bonus: employees_summary())
+     BACKEND NEEDED: GET /api/summary
+     Response: { company, total_employees, total_base_payroll, managers:[], interns:[], employees:[] }
+  ════════════════════════════════════════════════ */
+  async function loadSummary() {
+    const container = document.getElementById('summary-content');
+    container.innerHTML = '<div style="text-align:center;padding:1rem;"><span class="spinner"></span></div>';
+    try {
+      const d = await api('/api/summary');
+      container.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem;">
+          <div class="type-card">
+            <div class="type-card-label">Employees</div>
+            <div class="type-card-count" style="color:var(--accent);">${d.employees.length}</div>
+            <div class="type-card-total">${d.employees.join(', ') || '—'}</div>
+          </div>
+          <div class="type-card">
+            <div class="type-card-label">Managers</div>
+            <div class="type-card-count" style="color:var(--accent2);">${d.managers.length}</div>
+            <div class="type-card-total">${d.managers.join(', ') || '—'}</div>
+          </div>
+          <div class="type-card">
+            <div class="type-card-label">Interns</div>
+            <div class="type-card-count" style="color:var(--amber);">${d.interns.length}</div>
+            <div class="type-card-total">${d.interns.join(', ') || '—'}</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:1rem;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);">
+          <span style="color:var(--text-muted);font-size:0.85rem;">Total Base Payroll (sum of base salaries)</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--green);font-weight:700;">${fmtRs(d.total_base_payroll)}</span>
+        </div>`;
+    } catch (err) {
+      container.innerHTML = `<div class="empty"><p style="color:var(--red);">${err.message}</p></div>`;
+    }
+  }
+
+  /* ════════════════════════════════════════════════
+     GENERATE REPORT (Day 8: payroll_report())
+     BACKEND NEEDED: GET /api/report
+     Response: { company, total_employees, total_payroll, by_type, highest_earner, pay_slips }
+  ════════════════════════════════════════════════ */
+  async function generateReport() {
+    if (!allEmployees.length) { showToast('Add employees first!', 'error'); return; }
+    try {
+      const report  = await api('/api/report');
+      const section = document.getElementById('report-section');
+      section.style.display = '';
+
+      const typesHtml = Object.entries(report.by_type).map(([type, data]) => {
+        const color = type === 'Manager' ? 'var(--accent2)' : type === 'Intern' ? 'var(--amber)' : 'var(--accent)';
+        return `<div class="type-card">
+          <div class="type-card-label">${type}s</div>
+          <div class="type-card-count" style="color:${color};">${data.count}</div>
+          <div class="type-card-total">${fmtRs(data.total)}</div>
+        </div>`;
+      }).join('');
+      document.getElementById('report-types').innerHTML = typesHtml;
+
+      const slipsHtml = `
+        <table style="margin-top:1rem;">
+          <thead><tr><th>Name</th><th>ID</th><th>Type</th><th>Pay</th></tr></thead>
+          <tbody>
+            ${report.pay_slips.map(s => `<tr>
+              <td>${s.name}</td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-muted);">${s.emp_id}</td>
+              <td>${s.type}</td>
+              <td class="pay-amount">${fmtRs(s.pay)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        <div style="margin-top:1rem;padding:1rem;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:var(--text-muted);font-size:0.85rem;">Total Payroll</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--green);font-weight:700;font-size:1.1rem;">${fmtRs(report.total_payroll)}</span>
+        </div>`;
+      document.getElementById('report-pay-slips').innerHTML = slipsHtml;
+
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showToast('Report generated! ✓', 'success');
+    } catch (err) {
+      showToast('Report error: ' + err.message, 'error');
+    }
+  }
+
+  /* ════════════════════════════════════════════════
+     RENDER FUNCTIONS
+  ════════════════════════════════════════════════ */
+
+  function renderStats(empList, depts) {
+    const total   = empList.length;
+    const payroll = empList.reduce((s, e) => s + (e.total_pay || 0), 0);
+    const deptCnt = Object.keys(depts).length;
+    const avg     = total ? Math.round(payroll / total) : 0;
+
+    document.getElementById('stat-total').textContent   = total;
+    document.getElementById('stat-payroll').textContent = fmtRs(payroll);
+    document.getElementById('stat-depts').textContent   = deptCnt;
+    document.getElementById('stat-avg').textContent     = fmtRs(avg);
+  }
+
+  function renderTopEarner(top) {
+    document.getElementById('top-name').textContent = top.name  || '—';
+    document.getElementById('top-pay').textContent  = top.total_pay ? fmtRs(top.total_pay) : 'Rs.0';
+  }
+
+  function renderTable(list) {
+    const tbody = document.getElementById('emp-table-body');
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="empty">
+        <div class="empty-icon">👤</div><p>No employees found</p></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map(emp => {
+      const badgeC = emp.type === 'Manager' ? 'badge-manager' : emp.type === 'Intern' ? 'badge-intern' : 'badge-employee';
+      return `<tr>
+        <td><strong>${emp.name}</strong></td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-muted);">${emp.emp_id}</td>
+        <td>${emp.department}</td>
+        <td><span class="badge ${badgeC}">${emp.type}</span></td>
+        <td class="pay-amount">${fmtRs(emp.total_pay)}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="showPaySlip('${emp.emp_id}')"
+            style="background:rgba(99,179,237,0.12);color:var(--accent);border:1px solid rgba(99,179,237,0.2);">
+            Pay Slip
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="removeEmployee('${emp.emp_id}')">Remove</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderDepts(depts) {
+    const grid  = document.getElementById('dept-grid');
+    const names = Object.keys(depts);
+    if (!names.length) {
+      grid.innerHTML = `<div class="empty"><div class="empty-icon">🏢</div><p>Add employees to see department stats</p></div>`;
+      return;
+    }
+    grid.innerHTML = names.map(dept => {
+      const info  = depts[dept];
+      const chips = info.members.map(m => `<span class="member-chip">${m}</span>`).join('');
+      return `<div class="dept-card">
+        <div class="dept-name">🏢 ${dept}</div>
+        <div class="dept-stat"><span class="dept-stat-label">Employees</span><span class="dept-stat-value">${info.count}</span></div>
+        <div class="dept-stat"><span class="dept-stat-label">Total Payroll</span><span class="dept-stat-value" style="color:var(--green);">${fmtRs(info.total_payroll)}</span></div>
+        <div class="dept-stat"><span class="dept-stat-label">Avg. Salary</span><span class="dept-stat-value" style="color:var(--amber);">${fmtRs(info.avg_salary)}</span></div>
+        <div class="dept-members">${chips}</div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ════════════════════════════════════════════════
+     SEARCH / FILTER (local — no extra endpoint needed)
+  ════════════════════════════════════════════════ */
+  function filterTable() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const filtered = allEmployees.filter(e =>
+      e.name.toLowerCase().includes(q) ||
+      e.department.toLowerCase().includes(q) ||
+      e.emp_id.toLowerCase().includes(q)
+    );
+    renderTable(filtered);
+  }
+
+  /* ════════════════════════════════════════════════
+     TAB SWITCHER
+  ════════════════════════════════════════════════ */
+  function switchTab(id) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('tabBtn-' + id.replace('tab-', '')).classList.add('active');
+  }
+
+  /* ════════════════════════════════════════════════
+     MODAL
+  ════════════════════════════════════════════════ */
+  function closeModal(e) { if (e.target === document.getElementById('modal')) closeModalDirect(); }
+  function closeModalDirect() { document.getElementById('modal').classList.remove('open'); }
+
+  /* ════════════════════════════════════════════════
+     HELPERS
+  ════════════════════════════════════════════════ */
+  function fmtRs(n) { return 'Rs.' + Number(n).toLocaleString('en-IN'); }
+
+  function toggleExtraFields() {
+    const type = document.getElementById('emp-type').value;
+    document.getElementById('field-team-size').style.display = type === 'Manager' ? '' : 'none';
+    document.getElementById('field-stipend').style.display   = type === 'Intern'  ? '' : 'none';
+    document.getElementById('field-college').style.display   = type === 'Intern'  ? '' : 'none';
+  }
+
+  function clearForm() {
+    ['emp-name','emp-id','emp-dept','emp-salary','emp-team-size','emp-stipend','emp-college']
+      .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('emp-type').value = 'Employee';
+    toggleExtraFields();
+  }
+
+  let toastTimer;
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = 'toast'; }, 3000);
+  }
+
+  /* ════════════════════════════════════════════════
+     INIT — runs on page load
+  ════════════════════════════════════════════════ */
+  (async function init() {
+    await checkHealth();
+    await loadAll();
+    // Auto-refresh health every 10 seconds
+    setInterval(checkHealth, 10000);
+  })();
+</script>
+
+</body>
+</html>
