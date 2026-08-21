@@ -164,8 +164,17 @@ def add_to_cart(cart, product, quantity):
 
 def update_quantity(cart, product_id, new_quantity):
     # YOUR CODE HERE
-    pass
-
+    if product_id not in cart:
+        return {"success":False,"message":"Product not found in cart"}
+    else:
+        if new_quantity <=0:
+            del cart[product_id]
+            return {"success":True,"message":"Item removed from cart (product quantity =0)","action":"removed"}
+        
+        if new_quantity >0:
+            cart[product_id]["quantity"] = new_quantity
+            cart[product_id]["subtotal"]=new_quantity * cart[product_id]["unit_price"]
+            return {"success": True, "message": "Quantity updated successfully", "action": "updated"}
 
 # ============================================================
 # FUNCTION 2: remove_item(cart, product_id)
@@ -183,7 +192,11 @@ def update_quantity(cart, product_id, new_quantity):
 
 def remove_item(cart, product_id):
     # YOUR CODE HERE
-    pass
+    if product_id in cart:
+        removed_item=cart.pop(product_id)
+        return {"success":True,"message":f"{removed_item['name']} removed from cart","removed_item":removed_item}
+    else:
+        return {"success": False, "message": "Item not found in cart", "removed_item": None}
 
 
 # ============================================================
@@ -214,7 +227,22 @@ def remove_item(cart, product_id):
 
 def checkout(cart, coupon_code=None, payment_method="card"):
     # YOUR CODE HERE
-    pass
+    if len(cart)==0:
+        return {"success":False,"message":"cart is empty, cannot checkout","receipt":None}
+    else:
+        financial_totals=get_total(cart,coupon_code)
+        items_in_cart=[item['name'] for item in cart.values()]
+        order_id=f"ORD-{random.randint(10000, 99999)}"
+        receipt={
+            "order_id":order_id,
+            "timestamp":datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "items":items_in_cart,
+            "payment_method":payment_method,
+            "payment_status":"PAID" if payment_method.lower() != "cod" else "PENDING",
+            "financials":financial_totals
+        }
+        cart.clear()
+        return {"success":True,"message":"Order placed successfully, come again","receipt":receipt}
 
 
 # ============================================================
