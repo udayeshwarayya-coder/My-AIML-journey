@@ -1,4 +1,4 @@
-# ?? 300 Days of AI/ML — Placement Roadmap
+# ?? 300 Days of AI/ML â€” Placement Roadmap
 
 <div align="center">
 
@@ -30,12 +30,12 @@ This repository documents my **300-day project-based AI/ML learning journey**, s
 
 | Phase | Days | Projects | Topic | Status |
 |-------|------|----------|-------|--------|
-| [Phase 1](./phase1-python-oop/) | 1–30 | 7 | Python OOP & Core | ?? In Progress |
-| [Phase 2](./phase2-data-manipulation/) | 31–80 | 12 | NumPy, Pandas, Matplotlib | ? Not Started |
-| [Phase 3](./phase3-machine-learning/) | 81–160 | 18 | Machine Learning | ? Not Started |
-| [Phase 4](./phase4-kaggle-advanced-ml/) | 161–210 | 12 | Kaggle & Advanced ML | ? Not Started |
-| [Phase 5](./phase5-deep-learning/) | 211–260 | 12 | Deep Learning (PyTorch) | ? Not Started |
-| [Phase 6](./phase6-modern-ai-portfolio/) | 261–300 | 10 | Modern AI & Portfolio | ? Not Started |
+| [Phase 1](./phase1-python-oop/) | 1â€“30 | 7 | Python OOP & Core | ?? In Progress |
+| [Phase 2](./phase2-data-manipulation/) | 31â€“80 | 12 | NumPy, Pandas, Matplotlib | ? Not Started |
+| [Phase 3](./phase3-machine-learning/) | 81â€“160 | 18 | Machine Learning | ? Not Started |
+| [Phase 4](./phase4-kaggle-advanced-ml/) | 161â€“210 | 12 | Kaggle & Advanced ML | ? Not Started |
+| [Phase 5](./phase5-deep-learning/) | 211â€“260 | 12 | Deep Learning (PyTorch) | ? Not Started |
+| [Phase 6](./phase6-modern-ai-portfolio/) | 261â€“300 | 10 | Modern AI & Portfolio | ? Not Started |
 | **Total** | **300 days** | **71 projects** | | |
 
 ---
@@ -45,16 +45,16 @@ This repository documents my **300-day project-based AI/ML learning journey**, s
 ```
 300-days-ai-ml/
 +-- phase1-python-oop/
-¦   +-- README.md
-¦   +-- daily/
-¦   ¦   +-- day01/  (concepts.md + practice.py)
-¦   ¦   +-- day02/ ...
-¦   +-- projects/
-¦       +-- project01-student-record/
-¦       ¦   +-- README.md
-¦       ¦   +-- backend/app.py
-¦       ¦   +-- frontend/index.html
-¦       +-- project02-employee-payroll/
+Â¦   +-- README.md
+Â¦   +-- daily/
+Â¦   Â¦   +-- day01/  (concepts.md + practice.py)
+Â¦   Â¦   +-- day02/ ...
+Â¦   +-- projects/
+Â¦       +-- project01-student-record/
+Â¦       Â¦   +-- README.md
+Â¦       Â¦   +-- backend/app.py
+Â¦       Â¦   +-- frontend/index.html
+Â¦       +-- project02-employee-payroll/
 +-- phase2-data-manipulation/
 +-- phase3-machine-learning/
 +-- phase4-kaggle-advanced-ml/
@@ -78,7 +78,7 @@ This repository documents my **300-day project-based AI/ML learning journey**, s
 
 ---
 
-## ?? Daily Log — Phase 1
+## ?? Daily Log â€” Phase 1
 
 | Day | Topic | Status |
 |-----|-------|--------|
@@ -94,7 +94,7 @@ This repository documents my **300-day project-based AI/ML learning journey**, s
 | [Day 10](./phase1-python-oop/daily/day10/) | Encapsulation | ? Done |
 | [Day 11](./phase1-python-oop/daily/day11/) | Getters/Setters, `@property` | ?? Today |
 | [Day 12](./phase1-python-oop/daily/day12/) | Practice + Build Website | ? |
-| [Day 13–30](./phase1-python-oop/daily/) | ... | ? |
+| [Day 13â€“30](./phase1-python-oop/daily/) | ... | ? |
 
 ---
 
@@ -115,28 +115,16 @@ This repository documents my **300-day project-based AI/ML learning journey**, s
 
 ## ?? Spaced Repetition
 
-Every project revisits 2–3 concepts from previous projects:
+Every project revisits 2â€“3 concepts from previous projects:
 ```
 P1  ? NEW: OOP Basics
 P2  ? NEW: Inheritance      + REVISIT: OOP (P1)
 P3  ? NEW: Polymorphism     + REVISIT: OOP, Inheritance (P1-P2)
 P7  ? NEW: CSV/JSON         + REVISIT: ALL Phase 1
-P71 ? Portfolio — REVISIT EVERYTHING
+P71 ? Portfolio â€” REVISIT EVERYTHING
 ```
 
 ---
-
-## ?? How to Run Any Project
-
-```bash
-cd phase1-python-oop/projects/project01-student-record/backend
-pip install flask
-python app.py
-# Then open frontend/index.html in your browser
-```
-
----
-
 > *"Consistency beats intensity. 30 minutes every day > 5 hours once a week."*
 
 ? Star this repo if you find it helpful!
