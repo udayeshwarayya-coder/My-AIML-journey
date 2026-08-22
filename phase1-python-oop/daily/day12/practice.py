@@ -6,8 +6,7 @@ from flask import Flask, request, jsonify, send_from_directory
 import random
 from datetime import datetime
 import os
-
-app = Flask(__name__)
+app= Flask(__name__)
 
 # ============================================================
 # CART ENGINE — Your logic from Days 9-11 (already written for you)
@@ -190,7 +189,7 @@ cart = {}
 @app.route("/")
 def home():
     # YOUR CODE HERE
-    pass
+    return send_from_directory("templates","index.html")
 
 
 # ============================================================
@@ -206,7 +205,8 @@ def home():
 @app.route("/api/products", methods=["GET"])
 def get_products():
     # YOUR CODE HERE
-    pass
+    p_list=[item.get_details() for item in PRODUCTS_DB.values()]
+    return jsonify(p_list)
 
 
 # ============================================================
@@ -226,7 +226,13 @@ def get_products():
 @app.route("/api/cart/add", methods=["POST"])
 def add_item():
     # YOUR CODE HERE
-    pass
+    data=request.get_json()
+    p_id=data["product_id"]
+    quantity=data["quantity"]
+    if p_id not in PRODUCTS_DB:
+        return jsonify({"success":False,"message":"product not found"}),404
+    add_to_cart(cart,PRODUCTS_DB[p_id],quantity)
+    return jsonify({"success":True, "cart":cart,"cart_count":len(cart)})
 
 
 # ============================================================
@@ -245,7 +251,12 @@ def add_item():
 @app.route("/api/cart", methods=["GET"])
 def get_cart():
     # YOUR CODE HERE
-    pass
+    totals=get_total(cart)
+    return jsonify({
+        "items":list(cart.values()),
+        "cart_count":len(cart),
+        "financials":totals
+    })
 
 
 # ============================================================
@@ -262,8 +273,11 @@ def get_cart():
 @app.route("/api/cart/update", methods=["PUT"])
 def update_item():
     # YOUR CODE HERE
-    pass
-
+    data=request.get_json()
+    product_id=data["product_id"]
+    new_quantity=data["quantity"]
+    result=update_quantity(cart,product_id,new_quantity)
+    return jsonify({"result":result,"cart":list(cart.values()),"cart_count":len(cart)})
 
 # ============================================================
 # ROUTE 6: DELETE /api/cart/remove
@@ -279,7 +293,10 @@ def update_item():
 @app.route("/api/cart/remove", methods=["DELETE"])
 def remove_from_cart():
     # YOUR CODE HERE
-    pass
+    data=request.get_json()
+    p_id=data["product_id"]
+    result=remove_item(cart,p_id)
+    return jsonify({"result":result,"cart":list(cart.values()),"cart_count":len(cart)})
 
 
 # ============================================================
@@ -303,7 +320,45 @@ def remove_from_cart():
 @app.route("/api/cart/checkout", methods=["POST"])
 def checkout_order():
     # YOUR CODE HERE
-    pass
+    # .get_json() with silent=True returns None if body is missing
+        data = request.get_json(silent=True) or {}
+    
+        coupon_code    = data.get("coupon_code", None)
+        payment_method = data.get("payment_method", "card")
+    
+        # Can't checkout an empty cart
+        if len(cart) == 0:
+            return jsonify({"success": False, "message": "Cart is empty. Cannot checkout."}), 400
+    
+        # Calculate financials using your Day 11 engine
+        financials = get_total(cart, coupon_code)
+    
+        # Snapshot — capture item names before clearing cart
+        items_snapshot = [item["name"] for item in cart.values()]
+    
+        # Generate a unique order ID
+        order_id = f"ORD-{random.randint(10000, 99999)}"
+    
+        # Build the receipt
+        receipt = {
+            "order_id":       order_id,
+            "timestamp":      datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "items":          items_snapshot,
+            "payment_method": payment_method.upper(),
+            # "PAID" for card/upi, "PENDING" for Cash on Delivery
+            "payment_status": "PAID" if payment_method.lower() != "cod" else "PENDING",
+            "financials":     financials
+        }
+    
+        # Clear the cart — order is placed
+        cart.clear()
+    
+        return jsonify({
+            "success": True,
+            "message": "Order placed successfully!",
+            "receipt": receipt
+        })
+    
 
 
 # ============================================================

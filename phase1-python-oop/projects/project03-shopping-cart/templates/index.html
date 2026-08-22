@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShopCart — Online Shopping</title>
+  <meta name="description" content="A premium online shopping cart built with Python Flask" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="brand-icon">🛍</div>
+      <span class="brand-name">ShopCart</span>
+    </div>
+    <button id="btn-toggle-cart" class="cart-toggle-btn">
+      🛒 <span id="cart-count-badge" class="badge">0</span>
+    </button>
+  </header>
+
+  <!-- ========== MAIN LAYOUT ========== -->
+  <main class="layout">
+
+    <!-- ===== PRODUCT CATALOGUE ===== -->
+    <section class="catalogue-section">
+      <h1 class="section-title">Product Catalogue</h1>
+      <div id="products-grid" class="products-grid">
+        <!-- Injected by JS -->
+        <div class="loading-spinner">Loading products...</div>
+      </div>
+    </section>
+
+    <!-- ===== CART SIDEBAR ===== -->
+    <aside id="cart-sidebar" class="cart-sidebar">
+      <div class="cart-header">
+        <h2 class="cart-title">Your Cart</h2>
+        <button id="btn-close-cart" class="close-btn" aria-label="Close cart">✕</button>
+      </div>
+
+      <div id="cart-items-list" class="cart-items-list">
+        <div class="cart-empty-state">
+          <span class="empty-icon">🛒</span>
+          <p>Your cart is empty</p>
+        </div>
+      </div>
+
+      <!-- Coupon -->
+      <div class="coupon-section">
+        <label class="coupon-label">Coupon Code</label>
+        <div class="coupon-row">
+          <input id="coupon-input" class="coupon-input" type="text" placeholder="SAVE10, FLAT100, WELCOME" />
+          <button id="btn-apply-coupon" class="btn-apply">Apply</button>
+        </div>
+        <p id="coupon-message" class="coupon-msg"></p>
+      </div>
+
+      <!-- Financials -->
+      <div id="financials-box" class="financials-box hidden">
+        <div class="fin-row"><span>Subtotal</span><span id="fin-subtotal">Rs.0</span></div>
+        <div class="fin-row discount"><span>Discount</span><span id="fin-discount">-Rs.0</span></div>
+        <div class="fin-row"><span>Tax (5%)</span><span id="fin-tax">Rs.0</span></div>
+        <div class="fin-row total"><span>Total</span><span id="fin-total">Rs.0</span></div>
+      </div>
+
+      <!-- Payment & Checkout -->
+      <div class="checkout-section">
+        <select id="payment-method" class="payment-select">
+          <option value="card">💳 Card</option>
+          <option value="upi">📲 UPI</option>
+          <option value="cod">📦 Cash on Delivery</option>
+        </select>
+        <button id="btn-checkout" class="btn-checkout">Place Order</button>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ========== ORDER SUCCESS MODAL ========== -->
+  <div id="order-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-success-icon">✅</div>
+      <h2 class="modal-title">Order Placed!</h2>
+      <div id="modal-receipt" class="modal-receipt"></div>
+      <button id="btn-close-modal" class="btn-close-modal">Continue Shopping</button>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
