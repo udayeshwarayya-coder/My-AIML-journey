@@ -123,7 +123,9 @@ $("btn-apply-coupon").addEventListener("click", async () => {
   const code = $("coupon-input").value.trim();
   appliedCoupon = code;
 
-  const res  = await fetch("/api/cart");
+  // ✅ FIX: pass the coupon code as a query param so Flask validates it
+  const url  = code ? `/api/cart?coupon=${encodeURIComponent(code)}` : "/api/cart";
+  const res  = await fetch(url);
   const data = await res.json();
   const fin  = data.financials;
 
@@ -133,9 +135,9 @@ $("btn-apply-coupon").addEventListener("click", async () => {
   if (fin.discount > 0) {
     msgEl.className = "coupon-msg success";
   } else if (code) {
-    // Try to validate with coupon to show error
-    const res2  = await fetch(`/api/cart?coupon=${code}`);
     msgEl.className = "coupon-msg error";
+  } else {
+    msgEl.className = "coupon-msg";
   }
   renderFinancials(fin);
 });
