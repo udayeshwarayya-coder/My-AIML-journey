@@ -1,7 +1,7 @@
 # 300-Day AI/ML Placement Roadmap
 ## Project-Based Learning Edition
 
-Since you are in your 3rd semester and currently managing Java DSA and Web Dev, consistency is more important than speed. This plan is designed for **30 minutes a day initially**, scaling to **1 hour a day** once you finish Web Dev.
+
 
 > [!TIP]
 > **How It Works:** Every 4 days you build a **website project**. You write the **Python backend logic** (max 3 functions/day). AI generates the frontend. Each project **revisits earlier concepts** so you never forget.
@@ -127,7 +127,7 @@ python next/phaseN/dayN/
 ---
 
 ## Phase 2: Data Manipulation & Visualization (Days 31-80)
-*Time: 30 mins/day | 12 Projects + 2 Review Days*
+*Time: 10 min read conceptand 30 mins/day practice | 12 Projects + 2 Review Days*
 
 ### NumPy (Days 31-45) -- 3 Projects + Review
 
