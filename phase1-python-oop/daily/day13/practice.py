@@ -43,7 +43,7 @@ class Book:
         # YOUR CODE HERE
         if new_price >0:
             self._price=new_price
-        
+        else:raise ValueError("Price must be greater than 0")
     def __str__(self):
         # YOUR CODE HERE
         if self.available:
