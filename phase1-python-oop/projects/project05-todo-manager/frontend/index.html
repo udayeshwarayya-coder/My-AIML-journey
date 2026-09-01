@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow — Smart Task Manager</title>
+  <meta name="description" content="A beautiful, AI-ready task manager built with Python & Flask. Add tasks, track priorities, view productivity scores and daily reports." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Tokens ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:    #0d0f14;
+      --bg-card:    #161921;
+      --bg-hover:   #1e2230;
+      --bg-input:   #1a1d27;
+      --border:     rgba(255,255,255,0.07);
+      --border-focus: rgba(139,92,246,0.6);
+
+      --purple:     #8b5cf6;
+      --purple-dim: #6d3fe8;
+      --cyan:       #06b6d4;
+      --amber:      #f59e0b;
+      --red:        #ef4444;
+      --green:      #22c55e;
+      --green-dim:  #16a34a;
+
+      --text-primary:   #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted:     #475569;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+
+      --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+      --shadow-glow: 0 0 32px rgba(139,92,246,0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Scrollbar ───────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+
+    /* ── Layout ──────────────────────────────────────────── */
+    .app-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+
+    /* ── Sidebar ─────────────────────────────────────────── */
+    .sidebar {
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 28px 0;
+      position: sticky; top: 0; height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 24px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--purple), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo-sub  { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+
+    .nav-section { padding: 20px 12px 8px; }
+    .nav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; padding: 0 12px 8px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: var(--radius-sm);
+      cursor: pointer; transition: all 0.15s ease;
+      color: var(--text-secondary); font-size: 14px; font-weight: 500;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .nav-item.active { background: rgba(139,92,246,0.15); color: var(--purple); }
+    .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .nav-badge {
+      margin-left: auto; background: var(--red); color: #fff;
+      font-size: 10px; font-weight: 700; padding: 2px 6px;
+      border-radius: 99px; min-width: 18px; text-align: center;
+    }
+
+    .sidebar-footer {
+      margin-top: auto; padding: 20px 24px 0;
+      border-top: 1px solid var(--border);
+    }
+    .score-pill {
+      background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(6,182,212,0.2));
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: var(--radius-md); padding: 14px 16px;
+      text-align: center;
+    }
+    .score-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .score-value { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, var(--purple), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .score-sub { font-size: 11px; color: var(--text-secondary); }
+
+    /* ── Main content ────────────────────────────────────── */
+    .main { display: flex; flex-direction: column; overflow-y: auto; }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 32px; border-bottom: 1px solid var(--border);
+      background: var(--bg-base); position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-title { font-size: 20px; font-weight: 700; }
+    .topbar-sub   { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      border: none; transition: all 0.2s ease; font-family: 'Inter', sans-serif;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple), var(--purple-dim));
+      color: #fff; box-shadow: 0 4px 12px rgba(139,92,246,0.4);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(139,92,246,0.5); }
+    .btn-ghost { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+    /* ── Views ───────────────────────────────────────────── */
+    .view { display: none; padding: 28px 32px; animation: fadeIn 0.25s ease; }
+    .view.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    /* ── Stat cards ──────────────────────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+    .stat-icon { font-size: 22px; margin-bottom: 10px; }
+    .stat-value { font-size: 30px; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+    .stat-card.purple .stat-value { color: var(--purple); }
+    .stat-card.green  .stat-value { color: var(--green); }
+    .stat-card.amber  .stat-value { color: var(--amber); }
+    .stat-card.cyan   .stat-value { color: var(--cyan); }
+
+    /* ── Priority breakdown ──────────────────────────────── */
+    .priority-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+    .priority-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 16px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .p-dot { width: 12px; height: 12px; border-radius: 99px; flex-shrink: 0; }
+    .p-dot.high   { background: var(--red); box-shadow: 0 0 8px rgba(239,68,68,0.5); }
+    .p-dot.medium { background: var(--amber); box-shadow: 0 0 8px rgba(245,158,11,0.5); }
+    .p-dot.low    { background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,0.5); }
+    .p-info { flex: 1; }
+    .p-label { font-size: 12px; color: var(--text-secondary); text-transform: capitalize; }
+    .p-count { font-size: 22px; font-weight: 700; }
+
+    /* ── Progress bar ────────────────────────────────────── */
+    .progress-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 28px; }
+    .progress-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .progress-bar-track { height: 10px; background: var(--bg-base); border-radius: 99px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--purple), var(--cyan)); transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+
+    /* ── Overdue section ─────────────────────────────────── */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 16px; font-weight: 600; }
+    .overdue-banner {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+      border-radius: var(--radius-md); padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      color: #fca5a5; font-size: 14px; margin-bottom: 12px;
+    }
+
+    /* ── Task list ───────────────────────────────────────── */
+    .filter-row {
+      display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 6px 14px; border-radius: 99px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      border: 1px solid var(--border); background: var(--bg-card);
+      color: var(--text-secondary); transition: all 0.15s ease;
+    }
+    .filter-btn:hover  { border-color: var(--purple); color: var(--purple); }
+    .filter-btn.active { background: rgba(139,92,246,0.15); border-color: var(--purple); color: var(--purple); }
+
+    .task-list { display: flex; flex-direction: column; gap: 10px; }
+    .task-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 14px 18px;
+      display: flex; align-items: center; gap: 14px;
+      transition: all 0.2s ease; position: relative; overflow: hidden;
+    }
+    .task-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    }
+    .task-card.high::before   { background: var(--red); }
+    .task-card.medium::before { background: var(--amber); }
+    .task-card.low::before    { background: var(--green); }
+    .task-card:hover { background: var(--bg-hover); transform: translateX(2px); }
+    .task-card.done { opacity: 0.55; }
+
+    .task-check {
+      width: 22px; height: 22px; border-radius: 6px;
+      border: 2px solid var(--text-muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.15s ease; background: none;
+    }
+    .task-check:hover { border-color: var(--purple); }
+    .task-check.checked { background: var(--green); border-color: var(--green); }
+    .task-check.checked::after { content: '✓'; color: #fff; font-size: 13px; font-weight: 700; }
+
+    .task-body { flex: 1; min-width: 0; }
+    .task-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .task-card.done .task-title { text-decoration: line-through; color: var(--text-muted); }
+    .task-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .priority-badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .priority-badge.high   { background: rgba(239,68,68,0.15); color: #fca5a5; }
+    .priority-badge.medium { background: rgba(245,158,11,0.15); color: #fcd34d; }
+    .priority-badge.low    { background: rgba(34,197,94,0.15);  color: #86efac; }
+    .due-date { font-size: 11px; color: var(--text-muted); }
+    .due-date.overdue { color: #fca5a5; }
+
+    .task-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s ease; }
+    .task-card:hover .task-actions { opacity: 1; }
+    .icon-btn {
+      width: 28px; height: 28px; border-radius: 6px; border: none;
+      background: var(--bg-base); color: var(--text-secondary);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; transition: all 0.15s ease;
+    }
+    .icon-btn:hover { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+
+    /* ── Modal ───────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: none; align-items: center; justify-content: center; z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 28px; width: 440px; max-width: 95vw;
+      box-shadow: var(--shadow-card);
+      animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+    .form-control {
+      width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      color: var(--text-primary); font-size: 14px; font-family: 'Inter', sans-serif;
+      outline: none; transition: border-color 0.15s ease;
+    }
+    .form-control:focus { border-color: var(--border-focus); }
+    select.form-control option { background: var(--bg-card); }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+    /* ── Daily report ────────────────────────────────────── */
+    .report-hero {
+      background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(6,182,212,0.1));
+      border: 1px solid rgba(139,92,246,0.2);
+      border-radius: var(--radius-lg); padding: 28px; margin-bottom: 24px;
+      text-align: center;
+    }
+    .report-date   { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+    .report-score  { font-size: 56px; font-weight: 800; background: linear-gradient(135deg, var(--purple), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+    .report-label  { font-size: 14px; color: var(--text-secondary); margin-top: 6px; }
+    .report-grid   { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .report-card   { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; text-align: center; }
+    .report-card .rc-value { font-size: 26px; font-weight: 700; }
+    .report-card .rc-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+    /* ── Toast ───────────────────────────────────────────── */
+    .toast-container { position: fixed; bottom: 28px; right: 28px; display: flex; flex-direction: column; gap: 8px; z-index: 200; }
+    .toast {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 16px;
+      font-size: 13px; font-weight: 500; max-width: 280px;
+      box-shadow: var(--shadow-card); display: flex; align-items: center; gap: 8px;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: none; opacity: 1; } }
+    .toast.success { border-color: rgba(34,197,94,0.3); }
+    .toast.error   { border-color: rgba(239,68,68,0.3); }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar   { display: none; }
+      .stats-grid, .priority-grid, .report-grid { grid-template-columns: repeat(2, 1fr); }
+      .view { padding: 20px 16px; }
+      .topbar { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── Sidebar ─────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">✅</div>
+      <div>
+        <div class="logo-text">TaskFlow</div>
+        <div class="logo-sub">Day 20 · Project 5</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Views</div>
+      <button class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard', this)">
+        <span class="nav-icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" id="nav-tasks" onclick="switchView('tasks', this)">
+        <span class="nav-icon">📋</span> All Tasks
+        <span class="nav-badge" id="badge-pending">0</span>
+      </button>
+      <button class="nav-item" id="nav-overdue" onclick="switchView('overdue', this)">
+        <span class="nav-icon">⚠️</span> Overdue
+        <span class="nav-badge" id="badge-overdue" style="background:var(--red)">0</span>
+      </button>
+      <button class="nav-item" id="nav-report" onclick="switchView('report', this)">
+        <span class="nav-icon">📈</span> Daily Report
+      </button>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="score-pill">
+        <div class="score-label">Productivity Score</div>
+        <div class="score-value" id="sidebar-score">—</div>
+        <div class="score-sub">weighted by priority</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────── -->
+  <main class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-sub" id="topbar-sub">Overview of all your tasks</div>
+      </div>
+      <button class="btn btn-primary" id="btn-add-task" onclick="openModal()">
+        ＋ Add Task
+      </button>
+    </header>
+
+    <!-- ─── Dashboard view ─────────────────────────── -->
+    <section class="view active" id="view-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card purple">
+          <div class="stat-icon">📦</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-label">Total Tasks</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value" id="stat-done">—</div>
+          <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-value" id="stat-pending">—</div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card cyan">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-value" id="stat-rate">—</div>
+          <div class="stat-label">Completion Rate</div>
+        </div>
+      </div>
+
+      <div class="progress-block">
+        <div class="progress-header">
+          <span style="font-size:14px;font-weight:600">Progress</span>
+          <span id="progress-label" style="font-size:13px;color:var(--text-secondary)">0%</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">By Priority</div>
+      </div>
+      <div class="priority-grid" style="margin-bottom:28px">
+        <div class="priority-card">
+          <div class="p-dot high"></div>
+          <div class="p-info">
+            <div class="p-label">High Priority</div>
+            <div class="p-count" id="p-high">—</div>
+          </div>
+        </div>
+        <div class="priority-card">
+          <div class="p-dot medium"></div>
+          <div class="p-info">
+            <div class="p-label">Medium Priority</div>
+            <div class="p-count" id="p-medium">—</div>
+          </div>
+        </div>
+        <div class="priority-card">
+          <div class="p-dot low"></div>
+          <div class="p-info">
+            <div class="p-label">Low Priority</div>
+            <div class="p-count" id="p-low">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">Recent Tasks</div>
+        <button class="btn btn-ghost" onclick="switchView('tasks', document.getElementById('nav-tasks'))" style="font-size:13px;padding:6px 12px">View all →</button>
+      </div>
+      <div class="task-list" id="recent-task-list"></div>
+    </section>
+
+    <!-- ─── Tasks view ─────────────────────────────── -->
+    <section class="view" id="view-tasks">
+      <div class="filter-row">
+        <button class="filter-btn active" id="filter-all"    onclick="applyFilter('all', this)">All</button>
+        <button class="filter-btn"        id="filter-pending" onclick="applyFilter('pending', this)">Pending</button>
+        <button class="filter-btn"        id="filter-done"   onclick="applyFilter('done', this)">Done</button>
+        <button class="filter-btn"        id="filter-high"   onclick="applyFilter('high', this)">🔴 High</button>
+        <button class="filter-btn"        id="filter-medium" onclick="applyFilter('medium', this)">🟡 Medium</button>
+        <button class="filter-btn"        id="filter-low"    onclick="applyFilter('low', this)">🟢 Low</button>
+      </div>
+      <div class="task-list" id="full-task-list"></div>
+    </section>
+
+    <!-- ─── Overdue view ───────────────────────────── -->
+    <section class="view" id="view-overdue">
+      <div class="overdue-banner">
+        <span style="font-size:20px">⚠️</span>
+        <div>
+          <strong id="overdue-count-text">— tasks</strong> are past their due date and still pending.
+          Complete or reschedule them to improve your score.
+        </div>
+      </div>
+      <div class="task-list" id="overdue-task-list"></div>
+    </section>
+
+    <!-- ─── Daily Report view ─────────────────────── -->
+    <section class="view" id="view-report">
+      <div class="report-hero">
+        <div class="report-date" id="report-date">—</div>
+        <div class="report-score" id="report-score">—</div>
+        <div class="report-label">Productivity Score</div>
+      </div>
+      <div class="report-grid">
+        <div class="report-card">
+          <div class="rc-value" id="rpt-total" style="color:var(--purple)">—</div>
+          <div class="rc-label">Total Tasks</div>
+        </div>
+        <div class="report-card">
+          <div class="rc-value" id="rpt-done" style="color:var(--green)">—</div>
+          <div class="rc-label">Completed</div>
+        </div>
+        <div class="report-card">
+          <div class="rc-value" id="rpt-overdue" style="color:var(--red)">—</div>
+          <div class="rc-label">Overdue</div>
+        </div>
+      </div>
+      <div class="section-header">
+        <div class="section-title" style="color:var(--red)">⚠️ Overdue Tasks</div>
+      </div>
+      <div class="task-list" id="report-overdue-list"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ── Add Task Modal ───────────────────────────────── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOnOutside(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+    <div class="modal-title" id="modal-heading">➕ New Task</div>
+    <div class="form-group">
+      <label class="form-label" for="inp-title">Task Title *</label>
+      <input class="form-control" id="inp-title" type="text" placeholder="e.g. Review pull requests" maxlength="120" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="inp-priority">Priority</label>
+        <select class="form-control" id="inp-priority">
+          <option value="high">🔴 High</option>
+          <option value="medium" selected>🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="inp-due">Due Date</label>
+        <input class="form-control" id="inp-due" type="date" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-task" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast container ──────────────────────────────── -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+  const API = 'http://localhost:5000/api';
+  let allTasks = [];
+  let currentFilter = 'all';
+
+  // ── Fetch & Render ─────────────────────────────────────
+  async function fetchAll() {
+    try {
+      const [tasks, stats, overdue, report] = await Promise.all([
+        fetch(`${API}/tasks`).then(r => r.json()),
+        fetch(`${API}/stats`).then(r => r.json()),
+        fetch(`${API}/overdue`).then(r => r.json()),
+        fetch(`${API}/daily-report`).then(r => r.json()),
+      ]);
+      allTasks = tasks;
+      renderDashboard(stats, overdue);
+      renderTaskList(tasks);
+      renderOverdueList(overdue);
+      renderReport(report);
+      updateBadges(stats, overdue);
+      updateSidebarScore(report.productivity_score);
+    } catch (e) {
+      showToast('Cannot reach backend. Is Flask running on port 5000?', 'error');
+    }
+  }
+
+  function renderDashboard(stats, overdue) {
+    document.getElementById('stat-total').textContent   = stats.total;
+    document.getElementById('stat-done').textContent    = stats.completed;
+    document.getElementById('stat-pending').textContent = stats.pending;
+    document.getElementById('stat-rate').textContent    = stats.completion_rate + '%';
+    document.getElementById('progress-label').textContent = stats.completion_rate + '%';
+    document.getElementById('progress-bar').style.width   = stats.completion_rate + '%';
+    document.getElementById('p-high').textContent   = stats.by_priority.high   ?? 0;
+    document.getElementById('p-medium').textContent = stats.by_priority.medium ?? 0;
+    document.getElementById('p-low').textContent    = stats.by_priority.low    ?? 0;
+
+    const recent = [...allTasks].slice(0, 4);
+    document.getElementById('recent-task-list').innerHTML =
+      recent.length ? recent.map(renderTaskCard).join('') : emptyState();
+  }
+
+  function renderTaskList(tasks) {
+    let filtered = tasks;
+    if (currentFilter === 'pending' || currentFilter === 'done') {
+      filtered = tasks.filter(t => t.status === currentFilter);
+    } else if (['high','medium','low'].includes(currentFilter)) {
+      filtered = tasks.filter(t => t.priority === currentFilter);
+    }
+    document.getElementById('full-task-list').innerHTML =
+      filtered.length ? filtered.map(renderTaskCard).join('') : emptyState();
+  }
+
+  function renderOverdueList(overdue) {
+    const txt = overdue.length === 1 ? '1 task' : `${overdue.length} tasks`;
+    document.getElementById('overdue-count-text').textContent = txt;
+    document.getElementById('overdue-task-list').innerHTML =
+      overdue.length ? overdue.map(renderTaskCard).join('') : `<div class="empty-state"><div class="empty-icon">🎉</div><p>No overdue tasks! Great work.</p></div>`;
+  }
+
+  function renderReport(report) {
+    document.getElementById('report-date').textContent  = new Date(report.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('report-score').textContent = report.productivity_score + '%';
+    document.getElementById('rpt-total').textContent    = report.stats.total;
+    document.getElementById('rpt-done').textContent     = report.stats.completed;
+    document.getElementById('rpt-overdue').textContent  = report.overdue_count;
+    document.getElementById('report-overdue-list').innerHTML =
+      report.overdue_tasks.length ? report.overdue_tasks.map(renderTaskCard).join('') : `<div class="empty-state"><div class="empty-icon">🎉</div><p>No overdue tasks!</p></div>`;
+  }
+
+  function renderTaskCard(task) {
+    const today = new Date().toISOString().split('T')[0];
+    const isOverdue = task.due_date && task.due_date < today && task.status !== 'done';
+    return `
+      <div class="task-card ${task.priority} ${task.status === 'done' ? 'done' : ''}" id="task-${task.id}">
+        <button class="task-check ${task.status === 'done' ? 'checked' : ''}"
+                onclick="toggleTask('${task.id}', '${task.status}')"
+                title="${task.status === 'done' ? 'Mark pending' : 'Mark done'}"></button>
+        <div class="task-body">
+          <div class="task-title" title="${escHtml(task.title)}">${escHtml(task.title)}</div>
+          <div class="task-meta">
+            <span class="priority-badge ${task.priority}">${task.priority}</span>
+            ${task.due_date ? `<span class="due-date ${isOverdue ? 'overdue' : ''}">${isOverdue ? '⚠️ ' : '📅 '}${task.due_date}</span>` : ''}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="icon-btn" onclick="deleteTask('${task.id}')" title="Delete task">🗑</button>
+        </div>
+      </div>`;
+  }
+
+  function emptyState() {
+    return `<div class="empty-state"><div class="empty-icon">📭</div><p>No tasks here. Add one!</p></div>`;
+  }
+
+  function updateBadges(stats, overdue) {
+    document.getElementById('badge-pending').textContent = stats.pending;
+    document.getElementById('badge-overdue').textContent = overdue.length;
+    if (overdue.length === 0) document.getElementById('badge-overdue').style.display = 'none';
+    else document.getElementById('badge-overdue').style.display = '';
+  }
+
+  function updateSidebarScore(score) {
+    document.getElementById('sidebar-score').textContent = score + '%';
+  }
+
+  // ── Task actions ───────────────────────────────────────
+  async function toggleTask(id, currentStatus) {
+    const newStatus = currentStatus === 'done' ? 'pending' : 'done';
+    await fetch(`${API}/tasks/${id}`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ status: newStatus }),
+    });
+    showToast(newStatus === 'done' ? '✅ Task completed!' : '↩️ Marked as pending', 'success');
+    fetchAll();
+  }
+
+  async function deleteTask(id) {
+    if (!confirm('Delete this task?')) return;
+    await fetch(`${API}/tasks/${id}`, { method: 'DELETE' });
+    showToast('🗑 Task deleted', 'success');
+    fetchAll();
+  }
+
+  // ── Add Task Modal ─────────────────────────────────────
+  function openModal() {
+    document.getElementById('inp-title').value = '';
+    document.getElementById('inp-priority').value = 'medium';
+    document.getElementById('inp-due').value = '';
+    document.getElementById('modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('inp-title').focus(), 100);
+  }
+  function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+  function closeModalOnOutside(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+
+  async function saveTask() {
+    const title    = document.getElementById('inp-title').value.trim();
+    const priority = document.getElementById('inp-priority').value;
+    const due_date = document.getElementById('inp-due').value;
+    if (!title) { showToast('Please enter a task title.', 'error'); return; }
+    const btn = document.getElementById('btn-save-task');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    await fetch(`${API}/tasks`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ title, priority, due_date }),
+    });
+    closeModal();
+    btn.disabled = false; btn.textContent = 'Save Task';
+    showToast('✅ Task added!', 'success');
+    fetchAll();
+  }
+
+  // ── Filters ────────────────────────────────────────────
+  function applyFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTaskList(allTasks);
+  }
+
+  // ── View switching ─────────────────────────────────────
+  const VIEW_META = {
+    dashboard: { title: 'Dashboard',    sub: 'Overview of all your tasks' },
+    tasks:     { title: 'All Tasks',    sub: 'View, filter, and complete your tasks' },
+    overdue:   { title: 'Overdue Tasks',sub: 'Tasks past their due date' },
+    report:    { title: 'Daily Report', sub: "Today's productivity summary" },
+  };
+
+  function switchView(name, btn) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(`view-${name}`).classList.add('active');
+    btn.classList.add('active');
+    document.getElementById('topbar-title').textContent = VIEW_META[name].title;
+    document.getElementById('topbar-sub').textContent   = VIEW_META[name].sub;
+  }
+
+  // ── Toast ──────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = msg;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  // ── Keyboard shortcuts ─────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'n' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') openModal();
+  });
+
+  // ── Helpers ────────────────────────────────────────────
+  function escHtml(str) { return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // ── Init ───────────────────────────────────────────────
+  fetchAll();
+</script>
+</body>
+</html>
