@@ -34,16 +34,19 @@ from contextlib import contextmanager
 class BlockTimer:
     def __init__(self, label="Block"):
         # YOUR CODE HERE
-        pass
+        self.label=label
+        self.duration=0
 
     def __enter__(self):
         # YOUR CODE HERE
-        pass
+        self.st_time=time.time()
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # YOUR CODE HERE
-        pass
-
+        self.duration=time.time()-self.st_time
+        print(f"  [{self.label}] completed in {self.duration:.4f}s")
+        return False
 
 # ============================================================
 # TASK 2: suppress_errors Context Manager (Exception Handling)
@@ -63,15 +66,18 @@ class BlockTimer:
 class suppress_errors:
     def __init__(self, *exceptions):
         # YOUR CODE HERE
-        pass
+        self.exceptions=exceptions
 
     def __enter__(self):
         # YOUR CODE HERE
-        pass
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # YOUR CODE HERE
-        pass
+        if exc_type is not None and issubclass(exc_type,self.exceptions):
+            print(f"exception type{exc_type} {exc_val}")
+            return True
+        return False
 
 
 # ============================================================
@@ -91,7 +97,12 @@ class suppress_errors:
 @contextmanager
 def temp_tag(note, new_tag):
     # YOUR CODE HERE
-    pass
+    old_tag=note.tag
+    note.tag=new_tag
+    try:
+        yield note
+    finally:
+        note.tag=old_tag
 
 
 # ============================================================
@@ -111,13 +122,23 @@ class Note:
     def to_dict(self):
         """Returns a dict with all 5 fields: note_id, title, content, tag, pinned."""
         # YOUR CODE HERE
-        pass
+        return {
+            "note_id":self.note_id,"title":self.title,"content":self.content,
+            "tag":self.tag,"pinned":self.pinned
+
+        }
 
     @classmethod
     def from_dict(cls, data):
         """Creates a Note from a dict."""
         # YOUR CODE HERE
-        pass
+        note_id=data["note_id"]
+        title =data["title"]
+        content=data["content"]
+        tag=data["tag"]
+        pinned=data["pinned"]
+        return cls(note_id,title,content,tag,pinned)
+
 
     def __str__(self):
         pin = "📌" if self.pinned else "  "
@@ -145,8 +166,9 @@ class NotesManager:
         3. Print a confirmation message
         """
         # YOUR CODE HERE
-        pass
-
+        with open(filepath,'w',encoding='utf-8') as f:
+            json.dump([n.to_dict() for n in self.notes ],f,indent=2)
+            print(f"saved {len(self.notes)} notes to {filepath} ")
     def load_from_json(self, filepath):
         """Load notes from a JSON file using a `with open(...)` context manager.
 
@@ -157,7 +179,14 @@ class NotesManager:
         4. Return True
         """
         # YOUR CODE HERE
-        pass
+        if not os.path.exists(filepath):
+            print(f"file not found{filepath}")
+            return False
+        with open(filepath,'r',encoding="utf-8") as f:
+            data =json.load(f)
+        self.notes=[Note.from_dict(d) for d in data]
+        print(f"loaded {len(self.notes)} notes from {filepath}")
+        return True
 
 
 # ============================================================
