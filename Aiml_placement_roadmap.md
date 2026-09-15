@@ -1,4 +1,4 @@
-# 300-Day AI/ML Placement Roadmap
+# AI/ML Placement Roadmap
 ## Project-Based Learning Edition
 
 
