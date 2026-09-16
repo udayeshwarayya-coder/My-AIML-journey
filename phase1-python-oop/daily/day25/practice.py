@@ -103,8 +103,16 @@ def clean_phone(raw_phone: str) -> str:
 # - Raise `ValueError` if any check fails.
 
 def validate_email(email_str: str) -> bool:
-    # YOUR CODE HERE
-    pass
+    if not email_str.strip():
+        return True
+
+    if email_str.count('@') == 1:
+        user, domain = email_str.split('@')
+        if '.' in domain and not domain.startswith('.') and not domain.endswith('.') and len(user) > 0:
+            return True
+    raise ValueError(f"Invalid email address: '{email_str}'")
+
+    
 
 
 # ============================================================
@@ -128,8 +136,17 @@ def validate_email(email_str: str) -> bool:
 # - Auto-generate ID using `f"C{len(book.contacts) + 1:03d}"`.
 
 def add_contact(book: ContactBook, name: str, phone: str, email: str = "", city: str = "", birthday: str = "") -> Contact:
-    # YOUR CODE HERE
-    pass
+    if not name.strip():
+        raise ValueError("Name is required.")
+    phone = clean_phone(phone)
+    validate_email(email)  # raises ValueError if invalid
+    if any(c.phone == phone for c in book.contacts):
+        raise ValueError(f"Contact with phone '{phone}' already exists.")
+    contact_id = f"C{len(book.contacts) + 1:03d}"
+    contact = Contact(contact_id, name, phone, email, city, birthday)
+    book.contacts.append(contact)
+    return contact
+
 
 
 # ============================================================
@@ -151,9 +168,13 @@ def add_contact(book: ContactBook, name: str, phone: str, email: str = "", city:
 # - `writer.writeheader()`, then loop or `writer.writerows(...)`.
 
 def save_contacts_csv(book: ContactBook, filepath: str, columns: list = None) -> int:
-    # YOUR CODE HERE
-    pass
-
+    cols = columns or Contact.FIELDNAMES
+    with open(filepath, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
+        writer.writeheader()
+        for row in book.contacts:
+            writer.writerow(row.to_dict())
+    return len(book.contacts)
 
 # ============================================================
 # TASK 5: append_contact_csv(filepath: str, contact: Contact) -> None
@@ -176,7 +197,14 @@ def save_contacts_csv(book: ContactBook, filepath: str, columns: list = None) ->
 
 def append_contact_csv(filepath: str, contact: Contact) -> None:
     # YOUR CODE HERE
-    pass
+    file_exist=os.path.exists(filepath)
+    with open(filepath,"a",newline="",encoding="utf-8") as f:
+        writer=csv.DictWriter(f,fieldnames=Contact.FIELDNAMES,extrasaction="ignore")
+        if not file_exist:
+            writer.writeheader()
+        writer.writerow(contact.to_dict())
+
+
 
 
 # ============================================================
@@ -197,9 +225,13 @@ def append_contact_csv(filepath: str, contact: Contact) -> None:
 # - Loop over `reader` and append `Contact.from_dict(row)`.
 
 def load_contacts_csv(book: ContactBook, filepath: str) -> int:
-    # YOUR CODE HERE
-    pass
-
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: '{filepath}'")
+    with open(filepath, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for c in reader:
+            book.contacts.append(Contact.from_dict(c))
+    return len(book.contacts)
 
 # ============================================================
 # TASK 7: import_csv_with_report(book, filepath: str) -> dict
@@ -226,8 +258,28 @@ def load_contacts_csv(book: ContactBook, filepath: str) -> int:
 # - In `except Exception as err`: record the skip in report.
 
 def import_csv_with_report(book: ContactBook, filepath: str) -> dict:
-    # YOUR CODE HERE
-    pass
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: '{filepath}'")
+    report = {
+        "total_rows": 0,
+        "success_count": 0,
+        "skipped_count": 0,
+        "errors": []
+    }
+    with open(filepath, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for idx, row in enumerate(reader, start=1):
+            report["total_rows"] += 1
+            try:
+                add_contact(book, row.get('name'), row.get('phone'), row.get('email', ''), row.get('city', ''), row.get('birthday', ''))
+                report["success_count"] += 1
+            except Exception as err:
+                report["skipped_count"] += 1
+                report["errors"].append({"row_index": idx, "data": row, "error": str(err)})
+    return report
+
+
+
 
 
 # ============================================================
