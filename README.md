@@ -1,4 +1,4 @@
-# ?? 300 Days of AI/ML — Placement Roadmap
+#  AI/ML — Placement Roadmap
 
 <div align="center">
 
