@@ -127,7 +127,7 @@ python next/phaseN/dayN/
 ---
 
 ## Phase 2: Data Manipulation & Visualization (Days 31-80)
-*Time: 10 min read conceptand 30 mins/day practice | 12 Projects + 2 Review Days*
+*Time: 10 min read concepts and 30 mins/day practice | 12 Projects + 2 Review Days*
 
 ### NumPy (Days 31-45) -- 3 Projects + Review
 
