@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ContactBook Pro — Day 28 Project</title>
+  <meta name="description" content="A premium contact management app built with Python OOP, Flask, and vanilla JS — Phase 1 Day 28 capstone project." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════════
+       DESIGN SYSTEM — CSS CUSTOM PROPERTIES
+    ═══════════════════════════════════════════════ */
+    :root {
+      --bg-primary:   #0f172a;
+      --bg-card:      #1e293b;
+      --bg-card-2:    #243149;
+      --bg-sidebar:   #161f32;
+      --border:       #2d3f5a;
+      --teal:         #14b8a6;
+      --teal-dim:     #0d9488;
+      --teal-glow:    rgba(20,184,166,0.18);
+      --amber:        #f59e0b;
+      --amber-dim:    #d97706;
+      --amber-glow:   rgba(245,158,11,0.18);
+      --red:          #ef4444;
+      --red-glow:     rgba(239,68,68,0.16);
+      --violet:       #8b5cf6;
+      --violet-glow:  rgba(139,92,246,0.18);
+      --sky:          #38bdf8;
+      --text-primary: #f1f5f9;
+      --text-sec:     #94a3b8;
+      --text-muted:   #64748b;
+      --radius:       12px;
+      --radius-sm:    8px;
+      --sidebar-w:    72px;
+      --trans:        0.2s ease;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ═══════════════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════════════ */
+    #sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 100;
+      gap: 4px;
+    }
+    .sidebar-logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--teal), var(--sky));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px var(--teal-glow);
+    }
+    .nav-btn {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      color: var(--text-muted);
+      transition: var(--trans);
+      position: relative;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      background: var(--teal-glow);
+      color: var(--teal);
+    }
+    .nav-btn .tooltip {
+      position: absolute;
+      left: 60px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      z-index: 200;
+    }
+    .nav-btn:hover .tooltip { opacity: 1; }
+    .sidebar-spacer { flex: 1; }
+
+    /* ═══════════════════════════════════════════════
+       MAIN LAYOUT
+    ═══════════════════════════════════════════════ */
+    #main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Top bar ── */
+    #topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    #topbar h1 {
+      font-size: 18px; font-weight: 700;
+      background: linear-gradient(90deg, var(--teal), var(--sky));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      white-space: nowrap;
+    }
+    #search-bar {
+      flex: 1; max-width: 440px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex; align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+      transition: border-color var(--trans);
+    }
+    #search-bar:focus-within { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); }
+    #search-bar span { color: var(--text-muted); font-size: 16px; }
+    #search-input {
+      background: transparent; border: none; outline: none;
+      color: var(--text-primary); font-family: inherit;
+      font-size: 14px; width: 100%; padding: 10px 0;
+    }
+    #search-input::placeholder { color: var(--text-muted); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 18px;
+      border-radius: 10px;
+      border: none; cursor: pointer;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      transition: var(--trans);
+    }
+    .btn-primary {
+      background: var(--teal); color: #0f172a;
+    }
+    .btn-primary:hover { background: var(--teal-dim); transform: translateY(-1px); }
+    .btn-ghost {
+      background: var(--bg-card-2); color: var(--text-sec);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--border); color: var(--text-primary); }
+    .btn-danger {
+      background: var(--red-glow); color: var(--red);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+    .btn-danger:hover { background: var(--red); color: #fff; }
+    .btn-amber {
+      background: var(--amber-glow); color: var(--amber);
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+
+    /* ═══════════════════════════════════════════════
+       CONTENT AREA
+    ═══════════════════════════════════════════════ */
+    #content { padding: 28px; flex: 1; }
+
+    /* ── Views (pages) ── */
+    .view { display: none; animation: fadeIn 0.25s ease; }
+    .view.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .section-header h2 { font-size: 22px; font-weight: 700; }
+    .section-header p  { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+
+    /* ── Stats grid ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--trans);
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-card .accent-bar {
+      position: absolute; top: 0; left: 0;
+      height: 3px; width: 100%;
+    }
+    .stat-card .icon {
+      font-size: 28px; margin-bottom: 10px;
+    }
+    .stat-card .value {
+      font-size: 32px; font-weight: 800; line-height: 1;
+    }
+    .stat-card .label {
+      font-size: 12px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-top: 6px;
+    }
+
+    /* ── Contacts grid ── */
+    .contacts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .contact-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex; flex-direction: column; gap: 12px;
+      transition: border-color var(--trans), transform var(--trans);
+      position: relative;
+    }
+    .contact-card:hover { border-color: var(--teal); transform: translateY(-2px); }
+    .contact-card.duplicate { border-color: rgba(239,68,68,0.4); }
+    .card-top { display: flex; align-items: center; gap: 14px; }
+    .avatar {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; flex-shrink: 0;
+      color: #0f172a;
+    }
+    .card-name { font-size: 16px; font-weight: 700; }
+    .card-id   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .card-meta { display: flex; flex-direction: column; gap: 5px; }
+    .card-row  { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-sec); }
+    .card-row span.icon { width: 16px; text-align: center; font-size: 14px; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px; border-radius: 99px;
+      font-size: 11px; font-weight: 600;
+    }
+    .badge-teal   { background: var(--teal-glow);   color: var(--teal); }
+    .badge-amber  { background: var(--amber-glow);  color: var(--amber); }
+    .badge-red    { background: var(--red-glow);    color: var(--red); }
+    .badge-violet { background: var(--violet-glow); color: var(--violet); }
+    .card-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .card-actions .btn { flex: 1; justify-content: center; padding: 7px 10px; font-size: 12px; }
+    .dup-badge {
+      position: absolute; top: 12px; right: 12px;
+      background: var(--red-glow); color: var(--red);
+      border: 1px solid rgba(239,68,68,0.3);
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 6px;
+    }
+
+    /* ── City groups ── */
+    .city-group { margin-bottom: 28px; }
+    .city-group-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 14px;
+    }
+    .city-group-header h3 {
+      font-size: 16px; font-weight: 700;
+    }
+    .city-count {
+      background: var(--bg-card-2); color: var(--text-sec);
+      border: 1px solid var(--border);
+      font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 99px;
+    }
+
+    /* ── Birthday list ── */
+    .birthday-list { display: flex; flex-direction: column; gap: 12px; }
+    .birthday-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--amber);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .birthday-card .avatar { width: 44px; height: 44px; border-radius: 10px; font-size: 16px; }
+    .birthday-card .days-badge {
+      margin-left: auto;
+      background: var(--amber-glow);
+      color: var(--amber);
+      border: 1px solid rgba(245,158,11,0.3);
+      font-size: 12px; font-weight: 700;
+      padding: 4px 12px; border-radius: 8px;
+      white-space: nowrap;
+    }
+    .birthday-days-input {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .birthday-days-input label { font-size: 13px; color: var(--text-sec); }
+    .birthday-days-input input {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-primary); padding: 7px 12px; border-radius: 8px;
+      font-family: inherit; font-size: 13px; width: 70px;
+      outline: none;
+    }
+    .birthday-days-input input:focus { border-color: var(--teal); }
+
+    /* ── Import/Export ── */
+    .io-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .io-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .io-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .io-card p  { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5; }
+    .file-drop {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color var(--trans), background var(--trans);
+      margin-bottom: 14px;
+    }
+    .file-drop:hover, .file-drop.drag-over {
+      border-color: var(--teal);
+      background: var(--teal-glow);
+    }
+    .file-drop .drop-icon { font-size: 28px; margin-bottom: 8px; }
+    .file-drop p { font-size: 13px; color: var(--text-muted); margin: 0; }
+    .file-drop input[type="file"] { display: none; }
+
+    /* ── Modal ── */
+    #modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      display: none; align-items: center; justify-content: center;
+    }
+    #modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+    #modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%; max-width: 520px;
+      padding: 28px;
+      margin: 20px;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(20px); opacity:0; } to { transform: none; opacity:1; } }
+    #modal h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-group input {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: inherit; font-size: 14px;
+      outline: none; transition: border-color var(--trans);
+    }
+    .form-group input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    /* ── Toast ── */
+    #toast-container {
+      position: fixed; bottom: 24px; right: 24px;
+      display: flex; flex-direction: column; gap: 10px;
+      z-index: 9999;
+    }
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 14px;
+      display: flex; align-items: center; gap: 10px;
+      animation: slideInRight 0.3s ease;
+      min-width: 260px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .toast.success { border-left: 3px solid var(--teal); }
+    .toast.error   { border-left: 3px solid var(--red); }
+    .toast.info    { border-left: 3px solid var(--sky); }
+    @keyframes slideInRight { from { transform: translateX(60px); opacity:0; } to { transform:none; opacity:1; } }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-sec); margin-bottom: 8px; }
+    .empty-state p  { font-size: 14px; line-height: 1.5; }
+
+    /* ── Loader ── */
+    .loader {
+      text-align: center; padding: 40px;
+      color: var(--text-muted); font-size: 14px;
+    }
+    .spinner {
+      display: inline-block; width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Alert banner ── */
+    .alert-banner {
+      background: var(--amber-glow);
+      border: 1px solid rgba(245,158,11,0.35);
+      border-radius: 10px;
+      padding: 12px 18px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px; margin-bottom: 20px;
+      animation: fadeIn 0.4s ease;
+    }
+    .alert-banner .icon { font-size: 20px; }
+    .alert-banner strong { color: var(--amber); }
+    .alert-banner p { color: var(--text-sec); }
+
+    /* ── Duplicate section ── */
+    .dup-notice {
+      background: var(--red-glow);
+      border: 1px solid rgba(239,68,68,0.35);
+      border-radius: 10px;
+      padding: 12px 18px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px; margin-bottom: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .contacts-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .io-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav id="sidebar">
+  <div class="sidebar-logo">📒</div>
+  <button class="nav-btn active" id="nav-contacts" onclick="showView('contacts')" title="Contacts">
+    👥<span class="tooltip">Contacts</span>
+  </button>
+  <button class="nav-btn" id="nav-cities" onclick="showView('cities')" title="By City">
+    🗺️<span class="tooltip">By City</span>
+  </button>
+  <button class="nav-btn" id="nav-birthdays" onclick="showView('birthdays')" title="Birthdays">
+    🎂<span class="tooltip">Birthdays</span>
+  </button>
+  <button class="nav-btn" id="nav-stats" onclick="showView('stats')" title="Stats">
+    📊<span class="tooltip">Statistics</span>
+  </button>
+  <button class="nav-btn" id="nav-duplicates" onclick="showView('duplicates')" title="Duplicates">
+    ⚠️<span class="tooltip">Duplicates</span>
+  </button>
+  <div class="sidebar-spacer"></div>
+  <button class="nav-btn" id="nav-io" onclick="showView('io')" title="Import / Export">
+    📦<span class="tooltip">Import / Export</span>
+  </button>
+  <button class="nav-btn" onclick="seedData()" title="Load Demo Data">
+    🌱<span class="tooltip">Seed Demo Data</span>
+  </button>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div id="main">
+  <!-- Topbar -->
+  <header id="topbar">
+    <h1>ContactBook<span style="font-weight:300;color:var(--text-muted)"> Pro</span></h1>
+    <div id="search-bar">
+      <span>🔍</span>
+      <input id="search-input" type="text" placeholder="Search by name, phone, city…" oninput="handleSearch()" />
+    </div>
+    <button class="btn btn-primary" onclick="openAddModal()" id="add-contact-btn">
+      ＋ Add Contact
+    </button>
+  </header>
+
+  <!-- Content -->
+  <main id="content">
+
+    <!-- ─── CONTACTS VIEW ─── -->
+    <section class="view active" id="view-contacts">
+      <div class="section-header">
+        <div>
+          <h2>All Contacts</h2>
+          <p id="contact-count-label">Loading…</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-ghost" onclick="loadContacts()">↺ Refresh</button>
+        </div>
+      </div>
+      <div id="contacts-container" class="contacts-grid">
+        <div class="loader"><div class="spinner"></div><br>Loading contacts…</div>
+      </div>
+    </section>
+
+    <!-- ─── CITIES VIEW ─── -->
+    <section class="view" id="view-cities">
+      <div class="section-header">
+        <div><h2>Contacts by City</h2><p>Grouped by city of residence</p></div>
+        <button class="btn btn-ghost" onclick="loadCities()">↺ Refresh</button>
+      </div>
+      <div id="cities-container">
+        <div class="loader"><div class="spinner"></div><br>Loading…</div>
+      </div>
+    </section>
+
+    <!-- ─── BIRTHDAYS VIEW ─── -->
+    <section class="view" id="view-birthdays">
+      <div class="section-header">
+        <div><h2>Birthday Reminders 🎂</h2><p>Upcoming birthdays in the next N days</p></div>
+        <div class="birthday-days-input">
+          <label for="days-input">Days ahead:</label>
+          <input id="days-input" type="number" value="7" min="1" max="365" onchange="loadBirthdays()" />
+          <button class="btn btn-amber" onclick="loadBirthdays()">🔍 Check</button>
+        </div>
+      </div>
+      <div id="birthday-alert"></div>
+      <div id="birthdays-container" class="birthday-list">
+        <div class="loader"><div class="spinner"></div><br>Loading…</div>
+      </div>
+    </section>
+
+    <!-- ─── STATS VIEW ─── -->
+    <section class="view" id="view-stats">
+      <div class="section-header">
+        <div><h2>Statistics Dashboard 📊</h2><p>Aggregate insights about your contact book</p></div>
+        <button class="btn btn-ghost" onclick="loadStats()">↺ Refresh</button>
+      </div>
+      <div id="stats-container">
+        <div class="loader"><div class="spinner"></div><br>Loading…</div>
+      </div>
+    </section>
+
+    <!-- ─── DUPLICATES VIEW ─── -->
+    <section class="view" id="view-duplicates">
+      <div class="section-header">
+        <div><h2>Duplicate Phone Numbers ⚠️</h2><p>Contacts sharing a phone number</p></div>
+        <button class="btn btn-ghost" onclick="loadDuplicates()">↺ Refresh</button>
+      </div>
+      <div id="duplicates-container">
+        <div class="loader"><div class="spinner"></div><br>Loading…</div>
+      </div>
+    </section>
+
+    <!-- ─── IMPORT/EXPORT VIEW ─── -->
+    <section class="view" id="view-io">
+      <div class="section-header">
+        <div><h2>Import &amp; Export 📦</h2><p>Move your contact data in and out</p></div>
+      </div>
+      <div class="io-grid">
+
+        <!-- Export CSV -->
+        <div class="io-card">
+          <h3>⬇️ Export as CSV</h3>
+          <p>Download all contacts as a comma-separated values file, importable into Excel, Google Sheets, etc.</p>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="exportCSV()">Download contacts.csv</button>
+        </div>
+
+        <!-- Import CSV -->
+        <div class="io-card">
+          <h3>⬆️ Import from CSV</h3>
+          <p>Upload a CSV file with columns: <code style="color:var(--teal)">contact_id, name, phone, email, city, birthday</code>. Duplicates (by ID) are skipped.</p>
+          <div class="file-drop" id="csv-drop" onclick="document.getElementById('csv-file').click()" ondrop="handleDrop(event,'csv')" ondragover="dragOver(event)" ondragleave="dragLeave(event,'csv')">
+            <div class="drop-icon">📄</div>
+            <p>Click or drag &amp; drop a .csv file here</p>
+            <input type="file" id="csv-file" accept=".csv" onchange="importCSV(this)" />
+          </div>
+        </div>
+
+        <!-- Export JSON -->
+        <div class="io-card">
+          <h3>⬇️ Export as JSON</h3>
+          <p>Download all contacts as a JSON file — perfect for backups or transferring to another app.</p>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="exportJSON()">Download contacts.json</button>
+        </div>
+
+        <!-- Import JSON -->
+        <div class="io-card">
+          <h3>⬆️ Import from JSON</h3>
+          <p>Upload a JSON array of contact objects. New contacts are merged; duplicates by <code style="color:var(--teal)">contact_id</code> are skipped.</p>
+          <div class="file-drop" id="json-drop" onclick="document.getElementById('json-file').click()" ondrop="handleDrop(event,'json')" ondragover="dragOver(event)" ondragleave="dragLeave(event,'json')">
+            <div class="drop-icon">📋</div>
+            <p>Click or drag &amp; drop a .json file here</p>
+            <input type="file" id="json-file" accept=".json" onchange="importJSON(this)" />
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ═══════════════ MODAL ═══════════════ -->
+<div id="modal-overlay" onclick="closeModalOnOverlay(event)">
+  <div id="modal" role="dialog" aria-modal="true">
+    <h2 id="modal-title">Add Contact</h2>
+    <form id="contact-form" onsubmit="submitContactForm(event)">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="f-name">Full Name *</label>
+          <input id="f-name" name="name" placeholder="e.g. Tony Stark" required />
+        </div>
+        <div class="form-group">
+          <label for="f-phone">Phone *</label>
+          <input id="f-phone" name="phone" placeholder="9876543210" required />
+        </div>
+        <div class="form-group">
+          <label for="f-email">Email</label>
+          <input id="f-email" name="email" type="email" placeholder="tony@stark.com" />
+        </div>
+        <div class="form-group">
+          <label for="f-city">City</label>
+          <input id="f-city" name="city" placeholder="New York" />
+        </div>
+        <div class="form-group">
+          <label for="f-birthday">Birthday</label>
+          <input id="f-birthday" name="birthday" type="date" />
+        </div>
+      </div>
+      <input type="hidden" id="f-id" name="contact_id" />
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="modal-submit-btn">Save Contact</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════ JAVASCRIPT ═══════════════ -->
+<script>
+  const API = "http://localhost:5007/api";
+
+  // Avatar color palette
+  const AVATAR_COLORS = [
+    "#14b8a6","#38bdf8","#8b5cf6","#f59e0b","#10b981","#f43f5e","#6366f1","#ec4899"
+  ];
+  function avatarColor(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+  }
+  function initials(name) {
+    return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  }
+
+  // ── Toast ───────────────────────────────────────────────
+  function showToast(msg, type = "success") {
+    const icons = { success: "✅", error: "❌", info: "ℹ️" };
+    const t = document.createElement("div");
+    t.className = `toast ${type}`;
+    t.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+    document.getElementById("toast-container").appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  // ── View switching ───────────────────────────────────────
+  const loaders = {
+    contacts:   loadContacts,
+    cities:     loadCities,
+    birthdays:  loadBirthdays,
+    stats:      loadStats,
+    duplicates: loadDuplicates,
+    io:         () => {},
+  };
+
+  function showView(view) {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(`view-${view}`).classList.add("active");
+    document.getElementById(`nav-${view}`)?.classList.add("active");
+    // Hide search bar on non-contacts views
+    document.getElementById("search-input").value = "";
+    loaders[view]?.();
+  }
+
+  // ── Search ───────────────────────────────────────────────
+  let searchTimer = null;
+  function handleSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      loadContacts(document.getElementById("search-input").value.trim());
+    }, 300);
+  }
+
+  // ── Contact card rendering ───────────────────────────────
+  function renderContactCard(c, isDup = false) {
+    const color  = avatarColor(c.name);
+    const today  = new Date();
+    let bdayBadge = "";
+    if (c.birthday) {
+      try {
+        const bd = new Date(c.birthday);
+        const thisYear = new Date(today.getFullYear(), bd.getMonth(), bd.getDate());
+        if (thisYear < today) thisYear.setFullYear(today.getFullYear() + 1);
+        const diff = Math.round((thisYear - today) / 86400000);
+        if (diff <= 7) bdayBadge = `<span class="badge badge-amber">🎂 ${diff === 0 ? "Today!" : `in ${diff}d`}</span>`;
+      } catch {}
+    }
+    return `
+      <div class="contact-card ${isDup ? 'duplicate' : ''}" id="card-${c.contact_id}">
+        ${isDup ? '<span class="dup-badge">DUPLICATE PHONE</span>' : ''}
+        <div class="card-top">
+          <div class="avatar" style="background:${color}">${initials(c.name)}</div>
+          <div>
+            <div class="card-name">${esc(c.name)}</div>
+            <div class="card-id">${esc(c.contact_id)}</div>
+          </div>
+          ${bdayBadge}
+        </div>
+        <div class="card-meta">
+          <div class="card-row"><span class="icon">📞</span>${esc(c.phone)}</div>
+          ${c.email ? `<div class="card-row"><span class="icon">✉️</span>${esc(c.email)}</div>` : ""}
+          ${c.city  ? `<div class="card-row"><span class="icon">📍</span>${esc(c.city)}</div>` : ""}
+          ${c.birthday ? `<div class="card-row"><span class="icon">🎂</span>${esc(c.birthday)}</div>` : ""}
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-ghost" onclick="openEditModal(${JSON.stringify(c).replace(/"/g,'&quot;')})">✏️ Edit</button>
+          <button class="btn btn-danger" onclick="deleteContact('${c.contact_id}', '${esc(c.name)}')">🗑️ Delete</button>
+        </div>
+      </div>`;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Load contacts ────────────────────────────────────────
+  async function loadContacts(query = "") {
+    const el = document.getElementById("contacts-container");
+    el.innerHTML = `<div class="loader"><div class="spinner"></div><br>Loading…</div>`;
+    try {
+      const url = query ? `${API}/contacts?search=${encodeURIComponent(query)}` : `${API}/contacts`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const label = document.getElementById("contact-count-label");
+      label.textContent = query
+        ? `${data.length} result${data.length !== 1 ? 's' : ''} for "${query}"`
+        : `${data.length} contact${data.length !== 1 ? 's' : ''} total`;
+      if (!data.length) {
+        el.innerHTML = `<div class="empty-state"><div class="icon">👥</div><h3>No contacts found</h3><p>${query ? 'Try a different search.' : 'Click "+ Add Contact" or 🌱 Seed demo data to get started.'}</p></div>`;
+        return;
+      }
+      el.innerHTML = data.map(c => renderContactCard(c)).join("");
+    } catch (e) {
+      el.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Cannot connect to backend</h3><p>Make sure Flask is running on port 5007.<br><code>python app.py</code></p></div>`;
+    }
+  }
+
+  // ── Load cities ──────────────────────────────────────────
+  async function loadCities() {
+    const el = document.getElementById("cities-container");
+    el.innerHTML = `<div class="loader"><div class="spinner"></div><br>Loading…</div>`;
+    try {
+      const res  = await fetch(`${API}/group-by-city`);
+      const data = await res.json();
+      const cities = Object.keys(data).sort();
+      if (!cities.length) {
+        el.innerHTML = `<div class="empty-state"><div class="icon">🗺️</div><h3>No contacts yet</h3><p>Add contacts first.</p></div>`;
+        return;
+      }
+      el.innerHTML = cities.map(city => `
+        <div class="city-group">
+          <div class="city-group-header">
+            <span style="font-size:20px">📍</span>
+            <h3>${esc(city)}</h3>
+            <span class="city-count">${data[city].length}</span>
+          </div>
+          <div class="contacts-grid">
+            ${data[city].map(c => renderContactCard(c)).join("")}
+          </div>
+        </div>
+      `).join("");
+    } catch {
+      el.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Cannot connect</h3><p>Is Flask running?</p></div>`;
+    }
+  }
+
+  // ── Load birthdays ───────────────────────────────────────
+  async function loadBirthdays() {
+    const days = document.getElementById("days-input").value || 7;
+    const el   = document.getElementById("birthdays-container");
+    const alertEl = document.getElementById("birthday-alert");
+    el.innerHTML  = `<div class="loader"><div class="spinner"></div><br>Loading…</div>`;
+    alertEl.innerHTML = "";
+    try {
+      const res  = await fetch(`${API}/birthdays?days=${days}`);
+      const data = await res.json();
+      if (data.length) {
+        alertEl.innerHTML = `<div class="alert-banner"><span class="icon">🎉</span><div><strong>${data.length} upcoming birthday${data.length !== 1 ? 's' : ''}</strong> in the next ${days} day${days != 1 ? 's' : ''}! Don't forget to wish them!</div></div>`;
+      }
+      if (!data.length) {
+        el.innerHTML = `<div class="empty-state"><div class="icon">🎂</div><h3>No upcoming birthdays</h3><p>No contacts have a birthday in the next ${days} day${days != 1 ? 's' : ''}.</p></div>`;
+        return;
+      }
+      const today = new Date();
+      el.innerHTML = data.map(c => {
+        const bd = new Date(c.birthday);
+        const thisYear = new Date(today.getFullYear(), bd.getMonth(), bd.getDate());
+        if (thisYear < today) thisYear.setFullYear(today.getFullYear() + 1);
+        const diff = Math.round((thisYear - today) / 86400000);
+        const color = avatarColor(c.name);
+        return `<div class="birthday-card">
+          <div class="avatar" style="background:${color}">${initials(c.name)}</div>
+          <div>
+            <div style="font-weight:700">${esc(c.name)}</div>
+            <div style="font-size:13px;color:var(--text-muted)">🎂 ${esc(c.birthday)} · 📞 ${esc(c.phone)}</div>
+          </div>
+          <span class="days-badge">${diff === 0 ? "🎉 Today!" : `in ${diff} day${diff !== 1 ? 's' : ''}`}</span>
+        </div>`;
+      }).join("");
+    } catch {
+      el.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Cannot connect</h3><p>Is Flask running?</p></div>`;
+    }
+  }
+
+  // ── Load stats ───────────────────────────────────────────
+  async function loadStats() {
+    const el = document.getElementById("stats-container");
+    el.innerHTML = `<div class="loader"><div class="spinner"></div><br>Loading…</div>`;
+    try {
+      const res  = await fetch(`${API}/stats`);
+      const data = await res.json();
+      el.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="accent-bar" style="background:linear-gradient(90deg,var(--teal),var(--sky))"></div>
+            <div class="icon">👥</div>
+            <div class="value" style="color:var(--teal)">${data.total_contacts}</div>
+            <div class="label">Total Contacts</div>
+          </div>
+          <div class="stat-card">
+            <div class="accent-bar" style="background:linear-gradient(90deg,var(--sky),var(--violet))"></div>
+            <div class="icon">🗺️</div>
+            <div class="value" style="color:var(--sky)">${data.unique_cities}</div>
+            <div class="label">Unique Cities</div>
+          </div>
+          <div class="stat-card">
+            <div class="accent-bar" style="background:linear-gradient(90deg,var(--amber),#f97316)"></div>
+            <div class="icon">🎂</div>
+            <div class="value" style="color:var(--amber)">${data.birthdays_this_month}</div>
+            <div class="label">Birthdays This Month</div>
+          </div>
+          <div class="stat-card">
+            <div class="accent-bar" style="background:linear-gradient(90deg,#10b981,var(--teal))"></div>
+            <div class="icon">🎉</div>
+            <div class="value" style="color:#10b981">${data.birthdays_next_7_days}</div>
+            <div class="label">Birthdays Next 7 Days</div>
+          </div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-top:4px;">
+          <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;">🐍 Python Functions Used (Days 25–28)</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            ${["load_contacts_csv()","save_contacts_csv()","add_contact()","export_json()","import_json()","merge_contacts()","group_by_city()","birthday_reminder()","find_duplicates()","export_to_csv()","stats()"].map(fn => `<span class="badge badge-teal" style="padding:5px 12px;font-size:12px;">${fn}</span>`).join("")}
+          </div>
+        </div>`;
+    } catch {
+      el.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Cannot connect</h3><p>Is Flask running?</p></div>`;
+    }
+  }
+
+  // ── Load duplicates ──────────────────────────────────────
+  async function loadDuplicates() {
+    const el = document.getElementById("duplicates-container");
+    el.innerHTML = `<div class="loader"><div class="spinner"></div><br>Loading…</div>`;
+    try {
+      const res  = await fetch(`${API}/duplicates`);
+      const data = await res.json();
+      if (!data.length) {
+        el.innerHTML = `<div class="empty-state"><div class="icon">✅</div><h3>No duplicates found</h3><p>All contacts have unique phone numbers. Great hygiene!</p></div>`;
+        return;
+      }
+      el.innerHTML = `
+        <div class="dup-notice"><span style="font-size:20px">⚠️</span><div><strong style="color:var(--red)">${data.length} contact${data.length!==1?'s':''}</strong> share a phone number with another contact.</div></div>
+        <div class="contacts-grid">${data.map(c => renderContactCard(c, true)).join("")}</div>`;
+    } catch {
+      el.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Cannot connect</h3><p>Is Flask running?</p></div>`;
+    }
+  }
+
+  // ── CRUD ─────────────────────────────────────────────────
+  let editingId = null;
+
+  function openAddModal() {
+    editingId = null;
+    document.getElementById("modal-title").textContent = "Add Contact";
+    document.getElementById("modal-submit-btn").textContent = "Save Contact";
+    document.getElementById("contact-form").reset();
+    document.getElementById("f-id").value = "";
+    document.getElementById("modal-overlay").classList.add("open");
+    document.getElementById("f-name").focus();
+  }
+
+  function openEditModal(c) {
+    editingId = c.contact_id;
+    document.getElementById("modal-title").textContent = "Edit Contact";
+    document.getElementById("modal-submit-btn").textContent = "Update Contact";
+    document.getElementById("f-id").value    = c.contact_id;
+    document.getElementById("f-name").value  = c.name;
+    document.getElementById("f-phone").value = c.phone;
+    document.getElementById("f-email").value = c.email;
+    document.getElementById("f-city").value  = c.city;
+    document.getElementById("f-birthday").value = c.birthday;
+    document.getElementById("modal-overlay").classList.add("open");
+    document.getElementById("f-name").focus();
+  }
+
+  function closeModal() {
+    document.getElementById("modal-overlay").classList.remove("open");
+  }
+  function closeModalOnOverlay(e) {
+    if (e.target === document.getElementById("modal-overlay")) closeModal();
+  }
+
+  async function submitContactForm(e) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    try {
+      let res;
+      if (editingId) {
+        res = await fetch(`${API}/contacts/${editingId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      } else {
+        res = await fetch(`${API}/contacts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Unknown error");
+      showToast(editingId ? `Updated ${data.name}` : `Added ${data.name}`, "success");
+      closeModal();
+      loadContacts();
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  }
+
+  async function deleteContact(id, name) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`${API}/contacts/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+      showToast(`Deleted ${name}`, "success");
+      loadContacts();
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  }
+
+  // ── Import / Export ──────────────────────────────────────
+  function exportCSV() {
+    window.open(`${API}/export/csv`, "_blank");
+    showToast("Downloading contacts.csv…", "info");
+  }
+  function exportJSON() {
+    window.open(`${API}/export/json`, "_blank");
+    showToast("Downloading contacts.json…", "info");
+  }
+
+  async function importCSV(input) {
+    const file = input.files[0]; if (!file) return;
+    const fd = new FormData(); fd.append("file", file);
+    try {
+      const res  = await fetch(`${API}/import/csv`, { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      showToast(`Imported ${data.imported} contacts (${data.total} total)`, "success");
+    } catch (err) { showToast(err.message, "error"); }
+    input.value = "";
+  }
+
+  async function importJSON(input) {
+    const file = input.files[0]; if (!file) return;
+    const fd = new FormData(); fd.append("file", file);
+    try {
+      const res  = await fetch(`${API}/import/json`, { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      showToast(`Imported ${data.imported} contacts (${data.total} total)`, "success");
+    } catch (err) { showToast(err.message, "error"); }
+    input.value = "";
+  }
+
+  function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add("drag-over"); }
+  function dragLeave(e, id) { document.getElementById(`${id}-drop`).classList.remove("drag-over"); }
+  function handleDrop(e, type) {
+    e.preventDefault();
+    document.getElementById(`${type}-drop`).classList.remove("drag-over");
+    const file = e.dataTransfer.files[0]; if (!file) return;
+    const input = document.getElementById(`${type}-file`);
+    const dt = new DataTransfer(); dt.items.add(file);
+    input.files = dt.files;
+    if (type === "csv") importCSV(input); else importJSON(input);
+  }
+
+  // ── Seed ─────────────────────────────────────────────────
+  async function seedData() {
+    if (!confirm("This will replace all current contacts with demo data. Continue?")) return;
+    try {
+      const res  = await fetch(`${API}/seed`, { method: "POST" });
+      const data = await res.json();
+      showToast(`Seeded ${data.seeded} sample contacts 🌱`, "success");
+      loadContacts();
+    } catch { showToast("Cannot connect to backend", "error"); }
+  }
+
+  // ── Keyboard shortcut ────────────────────────────────────
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeModal();
+    if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+      e.preventDefault(); document.getElementById("search-input").focus();
+    }
+  });
+
+  // ── Init ─────────────────────────────────────────────────
+  loadContacts();
+</script>
+</body>
+</html>
