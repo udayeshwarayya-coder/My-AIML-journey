@@ -1,0 +1,55 @@
+# Phase 2: LeetCode Daily Problems (Days 31–80)
+# Format: Day: Problem No. Title | Problem No. Title
+
+Day 31: 1929. Concatenation of Array | 1920. Build Array from Permutation
+Day 32: 566. Reshape the Matrix | 867. Transpose Matrix
+Day 33: 27. Remove Element | 283. Move Zeroes
+Day 34: 1480. Running Sum of 1d Array | 724. Find Pivot Index
+Day 35: 66. Plus One | 1365. How Many Numbers Are Smaller Than the Current Number
+Day 36: 977. Squares of a Sorted Array | 1672. Richest Customer Wealth
+Day 37: 26. Remove Duplicates from Sorted Array | 88. Merge Sorted Array
+Day 38: 311. Sparse Matrix Multiplication | 48. Rotate Image
+Day 39: 73. Set Matrix Zeroes | 54. Spiral Matrix
+Day 40: 989. Add to Array-Form of Integer | 56. Merge Intervals
+Day 41: 384. Shuffle an Array | 470. Implement Rand10() Using Rand7()
+Day 42: 217. Contains Duplicate | 349. Intersection of Two Arrays
+Day 43: 189. Rotate Array | 448. Find All Numbers Disappeared in an Array
+Day 44: 128. Longest Consecutive Sequence | 560. Subarray Sum Equals K
+Day 45: 238. Product of Array Except Self | 41. First Missing Positive
+
+Day 46: 1. Two Sum | 242. Valid Anagram
+Day 47: 387. First Unique Character in a String | 383. Ransom Note
+Day 48: 167. Two Sum II - Input Array Is Sorted | 15. 3Sum
+Day 49: 169. Majority Element | 451. Sort Characters By Frequency
+Day 50: 121. Best Time to Buy and Sell Stock | 53. Maximum Subarray
+Day 51: 268. Missing Number | 287. Find the Duplicate Number
+Day 52: 219. Contains Duplicate II | 350. Intersection of Two Arrays II
+Day 53: 14. Longest Common Prefix | 125. Valid Palindrome
+Day 54: 347. Top K Frequent Elements | 692. Top K Frequent Words
+Day 55: 49. Group Anagrams | 229. Majority Element II
+Day 56: 36. Valid Sudoku | 1002. Find Common Characters
+Day 57: 350. Intersection of Two Arrays II | 986. Interval List Intersections
+Day 58: 435. Non-overlapping Intervals | 57. Insert Interval
+Day 59: 75. Sort Colors | 905. Sort Array By Parity
+Day 60: 136. Single Number | 260. Single Number III
+Day 61: 74. Search a 2D Matrix | 240. Search a 2D Matrix II
+Day 62: 442. Find All Duplicates in an Array | 34. Find First and Last Position of Element in Sorted Array
+Day 63: 228. Summary Ranges | 163. Missing Ranges
+Day 64: 643. Maximum Average Subarray I | 209. Minimum Size Subarray Sum
+Day 65: 3. Longest Substring Without Repeating Characters | 1004. Max Consecutive Ones III
+
+Day 66: 11. Container With Most Water | 42. Trapping Rain Water
+Day 67: 179. Largest Number | 976. Largest Perimeter Triangle
+Day 68: 1636. Sort Array by Increasing Frequency | 1122. Relative Sort Array
+Day 69: 152. Maximum Product Subarray | 122. Best Time to Buy and Sell Stock II
+Day 70: 215. Kth Largest Element in an Array | 973. K Closest Points to Origin
+Day 71: 414. Third Maximum Number | 658. Find K Closest Elements
+Day 72: 766. Toeplitz Matrix | 1572. Matrix Diagonal Sum
+Day 73: 739. Daily Temperatures | 496. Next Greater Element I
+Day 74: 594. Longest Harmonious Subsequence | 525. Contiguous Array
+Day 75: 1207. Unique Number of Occurrences | 451. Sort Characters By Frequency
+Day 76: 791. Custom Sort String | 1636. Sort Array by Increasing Frequency
+Day 77: 945. Minimum Increment to Make Array Unique | 621. Task Scheduler
+Day 78: 84. Largest Rectangle in Histogram | 85. Maximal Rectangle
+Day 79: 300. Longest Increasing Subsequence | 673. Number of Longest Increasing Subsequence
+Day 80: 4. Median of Two Sorted Arrays | 239. Sliding Window Maximum

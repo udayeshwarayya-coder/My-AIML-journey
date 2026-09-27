@@ -1,0 +1,9 @@
+we have to make certain changes
+1.change the daily system meand day wise we will be covering topic wise means 
+daily we will be handling small portion of that topc according to aiml roadmap.
+2. after every 4 days project building is to be changed to flexible means topic wise 
+covering all preavies topics.
+3. seeing the aiml roadmap and based on the topic covered give daily 2 leetcode 
+problems not solution only problems no. and it should be in a flow.
+4.no changes in topic in aiml roadmap and in other sections.
+5. every line of code for projects and practice will be written by the user. Concept explanations must use completely separate example domains/functions (never use the main project/practice functions directly for explanation).
