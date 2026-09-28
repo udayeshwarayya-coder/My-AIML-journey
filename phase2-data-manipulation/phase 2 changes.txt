@@ -6,4 +6,6 @@ covering all preavies topics.
 3. seeing the aiml roadmap and based on the topic covered give daily 2 leetcode 
 problems not solution only problems no. and it should be in a flow.
 4.no changes in topic in aiml roadmap and in other sections.
-5. every line of code for projects and practice will be written by the user. Concept explanations must use completely separate example domains/functions (never use the main project/practice functions directly for explanation).
+5.give minimum hints in practice.py and in Concept.md dont take same 
+examples in practice.py, and my tasks should be little tricky for me.
+6. every line of code for projects and practice will be written by the user. Concept explanations must use completely separate example domains/functions (never use the main project/practice functions directly for explanation).

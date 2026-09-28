@@ -21,8 +21,8 @@ Following the updated Phase 2 guidelines:
 
 | Day | Topic / Concept | 3 Logic Functions | Daily LeetCode (Flow) | Status |
 |:---:|:---|:---|:---|:---:|
-| **31** | NumPy arrays, shapes, dimensions & dtypes | `create_marks_array()`, `calculate_averages()`, `grade_assign()` | • LC #1929: Concatenation of Array<br>• LC #1920: Build Array from Permutation | ⏳ Ready |
-| **32** | Reshaping, flattening, transposing & strides | `reshape_semester_data()`, `flatten_all_marks()`, `subject_wise_view()` | • LC #566: Reshape the Matrix<br>• LC #867: Transpose Matrix | ⏳ Pending |
+| **31** | NumPy arrays, shapes, dimensions & dtypes | `create_marks_array()`, `calculate_averages()`, `grade_assign()` | • LC #1929: Concatenation of Array<br>• LC #1920: Build Array from Permutation | ✅ Completed |
+| **32** | Reshaping, flattening, transposing & strides | `reshape_semester_data()`, `flatten_all_marks()`, `subject_wise_view()` | • LC #566: Reshape the Matrix<br>• LC #867: Transpose Matrix | ⏳ Ready |
 | **33** | Indexing, slicing, boolean masking & filtering | `filter_pass_students()`, `top_n_students()`, `subject_filter()` | • LC #27: Remove Element<br>• LC #283: Move Zeroes | ⏳ Pending |
 | **34** | Universal functions (ufuncs) & axis aggregations | `class_statistics()`, `grade_distribution()`, `normalize_marks()` | • LC #1480: Running Sum of 1d Array<br>• LC #724: Find Pivot Index | ⏳ Pending |
 | **35** | 🛠️ **Project 8 Milestone:** Grade Engine | `export_grade_report()`, `rank_distribution()`, `performance_chart_data()` | • LC #66: Plus One<br>• LC #1365: Smaller Than Current | ⏳ Pending |

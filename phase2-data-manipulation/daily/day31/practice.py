@@ -10,6 +10,8 @@ def create_marks_array(marks_list: List[List[float]]) -> np.ndarray:
     """
     Converts a 2D list of marks into a 2D float64 NumPy array.
     """
+    array=np.array(marks_list,dtype=np.float64)
+    return array
     raise NotImplementedError
 
 
@@ -17,6 +19,7 @@ def calculate_averages(marks_array: np.ndarray, axis: int = 1) -> np.ndarray:
     """
     Computes mean scores across the given axis, rounded to 2 decimal places.
     """
+    return np.mean(marks_array,axis=axis)
     raise NotImplementedError
 
 
@@ -25,6 +28,14 @@ def grade_assign(averages: np.ndarray) -> np.ndarray:
     Assigns letter grades ('A', 'B', 'C', 'D', 'F') to an array of averages.
     Scale: >=90: 'A', >=80: 'B', >=70: 'C', >=60: 'D', <60: 'F'.
     """
+    grades=['A','B','C','D','F']
+    marks=[averages>=90,
+           (averages<90)&(averages>=80),
+           (averages<80)&(averages>=70),
+           (averages<70)&(averages>=60),
+           (averages<60)]
+    classification=np.select(marks,grades,default="F")
+    return classification
     raise NotImplementedError
 
 
