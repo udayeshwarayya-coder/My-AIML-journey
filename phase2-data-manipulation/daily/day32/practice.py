@@ -15,7 +15,8 @@ def reshape_semester_data(
     Raises:
         ValueError: If the total number of elements does not match num_students * num_subjects.
     """
-    raise NotImplementedError
+    ma = flat_marks.reshape(num_students, num_subjects)
+    return ma
 
 
 def flatten_all_marks(
@@ -30,15 +31,19 @@ def flatten_all_marks(
                             affect the original array. If False, the returned array
                             must share memory with the original array.
     """
-    raise NotImplementedError
-
+    if return_copy:
+        flatten_marks = marks_tensor.flatten()
+        return flatten_marks
+    else:
+        return marks_tensor.ravel()
+ 
 
 def subject_wise_view(marks_matrix: np.ndarray) -> np.ndarray:
     """
     Converts a 2D student-major marks matrix of shape (num_students, num_subjects)
     into a subject-major matrix of shape (num_subjects, num_students).
     """
-    raise NotImplementedError
+    return marks_matrix.transpose()
 
 
 # =====================================================================
