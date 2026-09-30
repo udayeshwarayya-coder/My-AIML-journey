@@ -1,4 +1,4 @@
-﻿"""
+"""
 Day 33: NumPy Indexing, Slicing, Boolean Masking & Filtering
 Domain: Student Grade Engine — Semester Matrix Filtering
 
@@ -28,7 +28,9 @@ def filter_pass_students(
     Hint: You will need to compute row-wise averages first, then build
           a boolean mask from those averages, then apply it.
     """
-    raise NotImplementedError
+    return marks_matrix[np.mean(marks_matrix,axis=1)>=pass_threshold]
+
+    # raise NotImplementedError
 
 
 def top_n_students(
@@ -50,7 +52,10 @@ def top_n_students(
           np.argsort returns indices — how do you reverse that order?
           Then use those indices to select rows (fancy indexing).
     """
-    raise NotImplementedError
+    scores=np.sum(marks_matrix,axis=1)
+    ind=np.argsort(scores)
+    return marks_matrix[ind[-n:][::-1]]
+    # raise NotImplementedError
 
 
 def subject_filter(
@@ -70,7 +75,8 @@ def subject_filter(
     Hint: One clean line using the right indexing style — which type of
           indexing lets you pick arbitrary, non-contiguous columns?
     """
-    raise NotImplementedError
+    return marks_matrix[:,subject_indices]
+    # raise NotImplementedError
 
 
 # =====================================================================
@@ -94,7 +100,7 @@ if __name__ == "__main__":
     assert isinstance(passing, np.ndarray), "Must return ndarray"
     assert passing.shape == (4, 4), f"Expected (4, 4), got {passing.shape}"
     # Students 1, 2, 4, 5 pass (avg >= 50); students 0 and 3 fail
-    assert 85.0 in passing[:, 0], "Student 1 (mark 78) should be in result"
+    assert 78.0 in passing[:, 0], "Student 1 (mark 78) should be in result"
     assert 30.0 not in passing[:, 0], "Student 3 (mark 30) must NOT be in result"
     print("[PASSED] filter_pass_students")
 
